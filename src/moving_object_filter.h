@@ -9,6 +9,7 @@
 #define _MOVING_OBJECT_FILTER_H
 
 #include <ros/ros.h>
+#include <pcl_ros/point_cloud.h>
 
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
@@ -71,12 +72,17 @@ class MovingObjectFilter{
     private:
         ros::Publisher rgbPub_ ;
         ros::Publisher depthPub_ ;
+        ros::Publisher cloudPub_ ;
         cv::Ptr<cv::FeatureDetector> featureDetector_ ;
         cv::Ptr<cv::DescriptorExtractor> descriptorExtractor_;
         cv::Ptr<cv::DescriptorMatcher> descriptorMatcher_ ;
         std::vector<cv::KeyPoint> last_keypoints_ ;
         cv::Mat lastImage ;
         cv::Mat lastDepth ;
+        cv::Mat lastFrame ;
+        cv::Mat currentFrame ;
+
+        double threshod ;
 
 
         void computeHomography(cv::Mat &grayImage) ;

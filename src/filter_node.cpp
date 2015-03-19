@@ -29,7 +29,8 @@ class DynamicObjectFilter: public MovingObjectFilter{
     public:
         DynamicObjectFilter(int argc, char**argv):
         MovingObjectFilter( argc, argv ),
-    	sync_(0)
+        sync_(0),
+        rate_(0)
         {
             ros::NodeHandle nh ;
             ros::NodeHandle pnh("~") ;
@@ -77,20 +78,24 @@ class DynamicObjectFilter: public MovingObjectFilter{
 					warned = true ;
 				}//for if
 			}//for else
+            if(rate_ < 5){
+                rate_ ++ ;
+            }else{
+                if( image->data.size() && depth->data.size() && cameraInfo->K[4] != 0 ){
+                    image_geometry::PinholeCameraModel model ;
+                    model.fromCameraInfo(*cameraInfo) ;
+                    float cx = model.cx() ;
+                    float cy = model.cy() ;
+                    float fx = model.fx() ;
+                    float fy = model.fy() ;
 
-            if( image->data.size() && depth->data.size() && cameraInfo->K[4] != 0 ){
-                image_geometry::PinholeCameraModel model ;
-                model.fromCameraInfo(*cameraInfo) ;
-                float cx = model.cx() ;
-                float cy = model.cy() ;
-                float fx = model.fx() ;
-                float fy = model.fy() ;
+                    cv_bridge::CvImageConstPtr ptrImage = cv_bridge::toCvShare(image, "mono8");
+                    cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depth);
+                    this->processData( ptrImage->image, ptrDepth->image, cx, cy, fx, fy);
 
-                cv_bridge::CvImageConstPtr ptrImage = cv_bridge::toCvShare(image, "mono8");
-                cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depth);
-                this->processData( ptrImage->image, ptrDepth->image, cx, cy, fx, fy);
-
-                ROS_INFO("image depth CameraInfo");
+                    //ROS_INFO("image depth CameraInfo");
+                }
+                rate_ = 0 ;
             }
         }
 
@@ -101,6 +106,8 @@ class DynamicObjectFilter: public MovingObjectFilter{
         message_filters::Subscriber<sensor_msgs::CameraInfo> info_sub_;
         typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::CameraInfo> MySyncPolicy;
         message_filters::Synchronizer<MySyncPolicy> * sync_;
+
+        int rate_;
         
     };
 int main( int argc, char**argv ){
