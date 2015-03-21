@@ -9,13 +9,14 @@
  
  MovingObjectFilter::MovingObjectFilter( int argc, char**argv )//:frame_count(0) 
  {
+    /*
     ROS_INFO("constructor");
-    featureDetector_ = cv::FeatureDetector::create("ORB") ;
-    descriptorExtractor_ = cv::DescriptorExtractor::create("ORB") ;
+    featureDetector_ = cv::FeatureDetector::create("ORB") ;//
+    descriptorExtractor_ = cv::DescriptorExtractor::create("ORB") ;//
     descriptorMatcher_ = cv::DescriptorMatcher::create("BruteForce") ;
     if(featureDetector_.empty() || descriptorExtractor_.empty() || descriptorMatcher_.empty()){
         ROS_ERROR("Error creating detector, extractor or matcher.\n");
-    }
+    }*/
     ros::NodeHandle nh ;
     rgbPub_ = nh.advertise<sensor_msgs::Image>( "rgb" , 10 ) ;
     depthPub_ = nh.advertise<sensor_msgs::Image>( "depth", 10 ) ;
@@ -31,20 +32,23 @@
      //ROS_INFO("*******");
      cv::Mat imageMono ;
      //convert to grayscale
+
      if(image.channels() > 1){
         cv::cvtColor(image, imageMono, cv::COLOR_BGR2GRAY) ;
      }else{
         imageMono = image ;
      }
      this->computeHomography(imageMono);
-     cv::imshow("current View", imageMono) ;
-     if(cv::waitKey(1) > 0){
-         exit(0);
-     }
-     ROS_INFO( "Process data" ) ;
+
+     //cv::imshow("current View", imageMono) ;
+     //if(cv::waitKey(1) > 0){
+     //    exit(0);
+     //}
+
+     //ROS_INFO( "Process data" ) ;
 
 
-     //this->image_diff( imageMono, depth ) ;
+     this->image_diff( imageMono, depth ) ;
      /*
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>) ;
      cloud = this->cloudFromDepthRGB( image, depth, cx, cy, fx, fy, 1.0 ) ;
@@ -69,6 +73,77 @@
 
 }
 
+ void MovingObjectFilter::computeHomography(cv::Mat &grayImage){
+
+     //Step 1: Detect the keypoints using ORB Detector
+     cv::ORB orb ;
+     std::vector<cv::KeyPoint> lastKeypoints ;
+     std::vector<cv::KeyPoint> keypoints ;
+     
+     //featureDetector_ ->detect( grayImage, keypoints ) ;
+     //ROS_INFO( "The size of keypoints: %d", keypoints.size() ) ;
+     //if( keypoints.size() == 0 )
+     //    return ;
+     //Step 2: Calculate descriptors (features vectors)
+     cv::Mat lastDescriptors ;
+     cv::Mat descriptors ;
+
+     if(!lastImage.empty()){
+         orb( lastImage, cv::Mat(), lastKeypoints, lastDescriptors) ;
+         orb( grayImage, cv::Mat(), keypoints, descriptors );
+     }
+
+     cv::BFMatcher matcher(cv::NORM_L2) ;
+     //cv::BruteForceMatcher<cv::HammingLUT> matcher ;
+     std::vector<cv::DMatch> matches ;
+     //matcher.match( lastDescriptors, descriptors, matches );
+     std::vector<cv::DMatch> goodMatches ;
+     double minDist = 1000.0 , maxDist = 0.0 ;
+     cv::Mat img_matches ;
+     std::vector<cv::Point2f> lastPoint ;
+     std::vector<cv::Point2f> currentPoint ;
+     cv::namedWindow("matches") ;
+
+     if(!lastDescriptors.empty()){
+         //cout << "************" << endl ;
+         matcher.match( lastDescriptors, descriptors, matches );
+         for(int i=0; i<lastDescriptors.rows; i++){
+             double dist = matches[i].distance ;
+             if(dist < minDist)
+                 minDist = dist ;
+             if(dist > maxDist)
+                 maxDist = dist ;    
+         }
+
+         for(int i=0; i<lastDescriptors.rows; i++){
+             if( matches[i].distance < 0.6*maxDist ){
+                 goodMatches.push_back(matches[i]);
+             }
+         }
+         cv::drawMatches( lastImage, lastKeypoints, grayImage, keypoints, goodMatches,img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1),std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+         imshow("matches", img_matches) ;
+         cv::imwrite( "matches.jpg", img_matches ) ;
+         if(cv::waitKey(1) > 0){
+             exit(0);
+         }
+
+         if(goodMatches.size() > 4){
+             for( int i=0; i<goodMatches.size();i++ ){
+                 lastPoint.push_back( lastKeypoints[goodMatches[i].queryIdx].pt );
+                 currentPoint.push_back( keypoints[goodMatches[i].trainIdx].pt );
+             }
+             Homography = cv::findHomography( lastPoint, currentPoint, CV_RANSAC ) ;
+         }
+         cv::Mat dst ;
+         cv::warpPerspective( grayImage, dst, Homography, cv::Size(grayImage.rows, grayImage.cols));
+     }
+
+     lastImage = grayImage ;
+
+ }
+
+
+/*
 void MovingObjectFilter::computeHomography(cv::Mat &grayImage){
 
     //Step 1: Detect the keypoints using ORB Detector
@@ -104,21 +179,23 @@ void MovingObjectFilter::computeHomography(cv::Mat &grayImage){
     }
 
     //draw the matches
+
     cv::Mat img_matches ;
     cv::namedWindow("matches") ;
     cv::drawMatches( lastImage, last_keypoints_, grayImage, keypoints, matches,img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1),std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+    cv::imwrite( "matches.jpg", img_matches ) ;
     imshow("matches", img_matches) ;
 
     std::vector<cv::Mat> tmp ;
-    tmp.push_back(descriptor);
-    descriptorMatcher_->clear();
-    descriptorMatcher_->add(tmp);
-    last_keypoints_.swap( keypoints );
+    tmp.push_back(descriptor) ;
+    descriptorMatcher_->clear() ;
+    descriptorMatcher_->add(tmp) ;
+    last_keypoints_.swap( keypoints ) ;
     lastImage = grayImage ;
-    lastPoint.clear();
-    currentPoint.clear();
-    keypoints.clear();
-    //lastImage = grayImage;
+    lastPoint.clear() ;
+    currentPoint.clear() ;
+    keypoints.clear() ;
+    grayImage.copyTo( lastImage );
 
 }
 std::vector<cv::DMatch> MovingObjectFilter::match_and_filter(const cv::Mat& descriptors){
@@ -136,7 +213,7 @@ std::vector<cv::DMatch> MovingObjectFilter::match_and_filter(const cv::Mat& desc
     }
     return result ;
 }
-
+*/
 
 
 /*
@@ -154,10 +231,10 @@ std::vector<cv::DMatch> MovingObjectFilter::match_and_filter(const cv::Mat& desc
  */
 
 void MovingObjectFilter::image_diff(const cv::Mat &currentImage, const cv::Mat &depth){
-    cv::Mat BlurImage1, BlurImage2, diff_image ;
-    if(lastImage.empty()){
+    cv::Mat BlurImage1, BlurImage2 ;
+    if(lastBlurImage.empty()){
         cv::GaussianBlur( currentImage, BlurImage1, cv::Size( 11, 11 ), 0, 0 );
-        lastImage = BlurImage1 ;
+        lastBlurImage = BlurImage1 ;
         lastDepth = depth ;
     }else{
         cv::GaussianBlur( currentImage, BlurImage2, cv::Size( 11, 11 ), 0, 0 );
@@ -165,29 +242,14 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, const cv::Mat &
         //cv::absdiff( BlurImage2, lastImage, diff_image ) ;
 
         //Calculate the difference of image
-        //ROS_INFO("The size of H: rows=%d, cols=%d",H.rows,H.cols) ;
-        //Calculate the difference of image
-        //ROS_INFO("The size of H: rows=%d, cols=%d",H.rows,H.cols) ;
-        cv::Mat last_frame(480,640,CV_8UC1,cv::Scalar(0));
-        cv::Mat current_frame(480,640,CV_8UC1,cv::Scalar(0));
+        cv::Mat last_frame( 480,640, CV_8UC1, cv::Scalar(0) );
+        cv::Mat current_frame( 480,640, CV_8UC1, cv::Scalar(0) );
         lastFrame = last_frame ;
         currentFrame = current_frame ;
-        cv::namedWindow("lastFrame") ;
-        cv::namedWindow("currentFrame") ;
-        cv::namedWindow("warpImage") ;
         threshod = 30 ;
-        cv::Mat dst ;
-        //cout << "difference 01" << endl ;
-
-        if(!lastImage.empty()){
-            //(480,640,CV_32FC1,cv::Scalar(0));
-            //cout<<lastImage.rows<<endl;
-            cv::warpPerspective( BlurImage2, dst, Homography, cv::Size(BlurImage2.cols, BlurImage2.rows));//, CV_INTER_LINEAR);
-            cv::Mat matchScore ;
-            cv::matchTemplate(lastImage, dst, matchScore, CV_TM_SQDIFF) ;
-            //ROS_INFO("Match Score:%f", matchScore.at<float>(0,0));
-        }
-        //ROS_INFO("rows=%d , cols=%d", BlurImage2.rows, BlurImage2.cols) ;
+        //cv::namedWindow("lastFrame") ;
+        //cv::namedWindow("currentFrame") ;
+        //cv::namedWindow("warpImage") ;
         for( int rows=0; rows < BlurImage2.rows; rows++ ){
             for(int cols=0; cols< BlurImage2.cols; cols++){
                 cv::Mat srcMat = cv::Mat::zeros(3,1,CV_64FC1);
@@ -196,10 +258,10 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, const cv::Mat &
                 srcMat.at<double>(2,0) = 1.0 ;
                 cv::Mat warpMat = Homography * srcMat ;
                 cv::Point warpPt ;
-                warpPt.x = cvRound(warpMat.at<double>(0,0) / warpMat.at<double>(2,0)) ;
-                warpPt.y = cvRound(warpMat.at<double>(1,0) / warpMat.at<double>(2,0)) ;
-                //cout << "warpPt.x= " << warpPt.x <<" ; warpPt.y= " << warpPt.y << endl ;
-
+                warpPt.x = cvRound( warpMat.at<double>(0,0) / warpMat.at<double>(2,0) ) ;
+                warpPt.y = cvRound( warpMat.at<double>(1,0) / warpMat.at<double>(2,0) ) ;
+                cout << "warpPt.x= " << warpPt.x <<" ; warpPt.y= " << warpPt.y << endl ;
+                /*
                 if( warpPt.x>0&&warpPt.x<480 && warpPt.y>0&&warpPt.y<640){
 
                     double imageDiff = abs( lastImage.at<unsigned char>(warpPt.x ,warpPt.y) - BlurImage2.at<unsigned char>(rows, cols));
@@ -223,13 +285,13 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, const cv::Mat &
                     }
                 }else{
                     continue ;
-                }
+                }*/
             }
         }
         //cv::imshow("lastFrame",lastFrame);
         //cv::imshow("currentFrame",currentFrame) ;
         //cv::imshow("warpImage", dst) ;
-        lastImage = BlurImage2 ;
+        lastBlurImage = BlurImage2 ;
         lastDepth = depth ;
         //cv::threshold( diff_image, binary_image, threshod_binary, 255, cv::THRESH_BINARY );
     }

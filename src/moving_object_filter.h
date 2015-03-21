@@ -31,6 +31,7 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/nonfree/nonfree.hpp>
+#include <opencv2/nonfree/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -76,9 +77,11 @@ class MovingObjectFilter{
         cv::Ptr<cv::FeatureDetector> featureDetector_ ;
         cv::Ptr<cv::DescriptorExtractor> descriptorExtractor_;
         cv::Ptr<cv::DescriptorMatcher> descriptorMatcher_ ;
-        std::vector<cv::KeyPoint> last_keypoints_ ;
+        //std::vector<cv::KeyPoint> lastKeypoints ;
+        //cv::Mat lastDescriptors ;
         cv::Mat lastImage ;
         cv::Mat lastDepth ;
+        cv::Mat lastBlurImage ;
         cv::Mat lastFrame ;
         cv::Mat currentFrame ;
 
