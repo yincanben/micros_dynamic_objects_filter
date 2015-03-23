@@ -7,7 +7,7 @@
  #include "moving_object_filter.h"
  #include "umath.h"
  
- MovingObjectFilter::MovingObjectFilter( int argc, char**argv )//:frame_count(0) 
+ MovingObjectFilter::MovingObjectFilter( int argc, char**argv )//:frameId_("base_link")
  {
     /*
     ROS_INFO("constructor");
@@ -20,7 +20,7 @@
     ros::NodeHandle nh ;
     rgbPub_ = nh.advertise<sensor_msgs::Image>( "rgb" , 10 ) ;
     depthPub_ = nh.advertise<sensor_msgs::Image>( "depth", 10 ) ;
-
+    cloudPub_ = nh.advertise<sensor_msgs::PointCloud2>("pointcloud2",10) ;
     //std::cout << "constructor" << std::endl ;
     //previous_frame.create(640,480,)
 }
@@ -41,23 +41,20 @@
      this->computeHomography(imageMono);
 
      //cv::imshow("current View", imageMono) ;
-     //if(cv::waitKey(1) > 0){
-     //    exit(0);
-     //}
+
 
      //ROS_INFO( "Process data" ) ;
 
-
-     this->image_diff( imageMono, depth ) ;
-     /*
-     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>) ;
+     //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>) ;
      cloud = this->cloudFromDepthRGB( image, depth, cx, cy, fx, fy, 1.0 ) ;
+     this->image_diff( imageMono, cloud ) ;
+     /*
      sensor_msgs::PointCloud2::Ptr cloudMsg(new sensor_msgs::PointCloud2) ;
      pcl::toROSMsg(*cloud, *cloudMsg) ;
      cloudMsg->header.stamp = ros::Time::now() ;
-          //cloudMsg->header.frame_id = msg->header.frame_id ;
-     cloudPub_.publish(cloudMsg) ;
-     */
+     cloudMsg->header.frame_id = "Pointcloud" ;
+     cloudPub_.publish(cloudMsg) ;*/
+
 
      /*
      //cv::namedWindow( "Display window", CV_WINDOW_AUTOSIZE );// Create a window for display.
@@ -102,7 +99,7 @@
      cv::Mat img_matches ;
      std::vector<cv::Point2f> lastPoint ;
      std::vector<cv::Point2f> currentPoint ;
-     cv::namedWindow("matches") ;
+
 
      if(!lastDescriptors.empty()){
          //cout << "************" << endl ;
@@ -120,6 +117,9 @@
                  goodMatches.push_back(matches[i]);
              }
          }
+
+         //draw matches
+         cv::namedWindow("matches") ;
          cv::drawMatches( lastImage, lastKeypoints, grayImage, keypoints, goodMatches,img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1),std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
          imshow("matches", img_matches) ;
          cv::imwrite( "matches.jpg", img_matches ) ;
@@ -230,12 +230,13 @@ std::vector<cv::DMatch> MovingObjectFilter::match_and_filter(const cv::Mat& desc
  }
  */
 
-void MovingObjectFilter::image_diff(const cv::Mat &currentImage, const cv::Mat &depth){
+void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::ConstPtr cloud){
     cv::Mat BlurImage1, BlurImage2 ;
     if(lastBlurImage.empty()){
         cv::GaussianBlur( currentImage, BlurImage1, cv::Size( 11, 11 ), 0, 0 );
         lastBlurImage = BlurImage1 ;
-        lastDepth = depth ;
+        //lastDepth = depth ;
+        lastCloud = *cloud ;
     }else{
         cv::GaussianBlur( currentImage, BlurImage2, cv::Size( 11, 11 ), 0, 0 );
 
@@ -247,9 +248,23 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, const cv::Mat &
         lastFrame = last_frame ;
         currentFrame = current_frame ;
         threshod = 30 ;
-        //cv::namedWindow("lastFrame") ;
-        //cv::namedWindow("currentFrame") ;
+        cv::namedWindow("lastFrame") ;
+        cv::namedWindow("currentFrame") ;
         //cv::namedWindow("warpImage") ;
+        /*
+        double depthValue = 0 ;
+        if( !depth.empty() ){
+            for( int rows=0; rows<depth.rows; rows++){
+                for( int cols=0; cols<depth.cols; cols++ ){
+                    depthValue = (float)depth.at<uint16_t>( rows,cols )*0.001f ;
+                    lastDepthfloat.at<float>( rows, cols ) = depthValue ;
+                }
+            }
+        }*/
+        //cout << "The channels of lastDepth:" << lastDepth.channels() << endl ;
+        //cout << "The channels of Depth:" << depth.channels() << endl ;
+        //if(lastDepth.type() == CV_16UC1)
+            //cout << "CV_16UC1" << endl;
         for( int rows=0; rows < BlurImage2.rows; rows++ ){
             for(int cols=0; cols< BlurImage2.cols; cols++){
                 cv::Mat srcMat = cv::Mat::zeros(3,1,CV_64FC1);
@@ -260,39 +275,59 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, const cv::Mat &
                 cv::Point warpPt ;
                 warpPt.x = cvRound( warpMat.at<double>(0,0) / warpMat.at<double>(2,0) ) ;
                 warpPt.y = cvRound( warpMat.at<double>(1,0) / warpMat.at<double>(2,0) ) ;
-                cout << "warpPt.x= " << warpPt.x <<" ; warpPt.y= " << warpPt.y << endl ;
-                /*
-                if( warpPt.x>0&&warpPt.x<480 && warpPt.y>0&&warpPt.y<640){
+                //cout << "warpPt.x= " << warpPt.x <<" ; warpPt.y= " << warpPt.y << endl ;
+                //float lastDepthValue = (float)lastDepth.at<uint16_t>( rows, cols )*0.001f ;
+                //cout << "The rows of depth:" << rows << " ,The cols of depth: " << cols << endl ;
+                if( warpPt.x>0 && warpPt.x<480  &&  warpPt.y>0 && warpPt.y<640 ){
 
-                    double imageDiff = abs( lastImage.at<unsigned char>(warpPt.x ,warpPt.y) - BlurImage2.at<unsigned char>(rows, cols));
+                    double imageDiff = abs( lastBlurImage.at<unsigned char>(warpPt.x ,warpPt.y) - BlurImage2.at<unsigned char>(rows, cols));
+                    double lastDepthValue = 0.0 ;
+                    double depthValue = 0.0 ;
+                    Eigen::Vector3f v1 ;
+
                     //cout << "After  abs" << endl;
-                    //ROS_INFO("depth rows:%d ; cols:%d", depth.rows, depth.cols );
+                    //ROS_INFO("depth rows:%d ; cols:%d", depth.rows, depth.cols
 
-                    if( imageDiff > threshod  && depth.at<uint16_t>(rows,cols)>0 && lastDepth.at<uint16_t>(warpPt.x , warpPt.y)>0 ){
-                        float depthValue = (float)depth.at<uint16_t>(rows,cols)*0.001f ;
-                        float lastDepthValue = (float)lastDepth.at<uint16_t>(warpPt.x , warpPt.y)*0.001f ;
-                        if( lastDepthValue - depthValue > 0.1 ){
+                    if( imageDiff > threshod ){
+                        lastDepthValue = isnan( lastCloud.at( warpPt.y, warpPt.x).z) ? 20 : lastCloud.at(warpPt.y, warpPt.x).z ;
+                        depthValue = isnan( cloud->at(cols,rows).z) ? 20 : cloud->at(cols,rows).z ;
+                        //currentFrame.at<unsigned char>(rows,cols) = 255 ;
+                        //cout << "depth: " << depth.at<uint16_t>( rows, cols ) << endl;
+                        // && depth.at<uint16_t>(rows,cols)>0 && lastDepth.at<uint16_t>(warpPt.x , warpPt.y)>0 ){
+                        //float depthValue = (float)depth.at<uint16_t>( v,u )*0.001f ;
+                        //cout << "********,depth:" << depth.at<uint16_t>( rows,cols ) << endl ;
+                        //cout << "The rows of depth:" << rows << " ,The cols of depth: " << cols << endl ;
+                        //cout << "%%%%%%%%,lastdepth:" << lastDepth.at<uint16_t>( rows,cols ) << endl ;
+                        //float lastDepthValue = (float)lastDepth.at<uint16_t>( vv , uu )*0.001f ;
+                        //cout << "$$$$$$$$,lastdepth:" << lastDepth.at<uint16_t>( rows,cols ) << endl ;
+
+                        if( lastDepthValue - depthValue > 0.2 ){
                             lastFrame.at<unsigned char>(warpPt.x ,warpPt.y) = 255 ;
                             //currentFrame.at<unsigned char>(rows,cols) = 0 ;
-                        }else if( depthValue -lastDepthValue > 0.1 ){
+                        }else if( depthValue -lastDepthValue > 0.2 ){
                             //lastFrame.at<unsigned char>(rows,cols) = 0 ;
-                            currentFrame.at<unsigned char>(rows,cols) = 255 ;
+                            currentFrame.at<unsigned char>(rows, cols) = 255 ;
                         }else{
                             continue ;
                         }
+
                     }else{
                         continue ;
                     }
                 }else{
                     continue ;
-                }*/
+                }
             }
         }
-        //cv::imshow("lastFrame",lastFrame);
-        //cv::imshow("currentFrame",currentFrame) ;
+        cv::imshow("lastFrame",lastFrame);
+        cv::imshow("currentFrame",currentFrame) ;
         //cv::imshow("warpImage", dst) ;
+        if(cv::waitKey(1) > 0){
+            exit(0);
+        }
         lastBlurImage = BlurImage2 ;
-        lastDepth = depth ;
+        lastCloud = *cloud ;
+        //lastDepth = depth ;
         //cv::threshold( diff_image, binary_image, threshod_binary, 255, cv::THRESH_BINARY );
     }
 }
@@ -322,6 +357,7 @@ pcl::PointXYZ MovingObjectFilter::projectDepthTo3D(
     }
 
     bool isInMM = depthImage.type() == CV_16UC1; // is in mm?
+
 
     // Inspired from RGBDFrame::getGaussianMixtureDistribution() method from
     // https://github.com/ccny-ros-pkg/rgbdtools/blob/master/src/rgbd_frame.cpp
@@ -451,7 +487,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr MovingObjectFilter::cloudFromDepthRGB(
         }
         return cloud;
 }
-
+/*
 void MovingObjectFilter::image_separate( cloud_type::ConstPtr cloud ){
 
     //ROS_INFO("height=%f,width=%f",cloud->height,cloud->width);
@@ -503,7 +539,7 @@ void MovingObjectFilter::image_separate( cloud_type::ConstPtr cloud ){
         //std::cout << "other cloud" << std::endl ;
     }
 
-}
+}*/
 
 void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud ){
 

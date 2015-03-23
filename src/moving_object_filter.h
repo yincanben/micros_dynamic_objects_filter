@@ -81,16 +81,24 @@ class MovingObjectFilter{
         //cv::Mat lastDescriptors ;
         cv::Mat lastImage ;
         cv::Mat lastDepth ;
+        cv::Mat lastDepthfloat ;
         cv::Mat lastBlurImage ;
         cv::Mat lastFrame ;
         cv::Mat currentFrame ;
 
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
+        cloud_type lastCloud ;
+
         double threshod ;
+
+        //parameters
+        //std::string frameId_;
 
 
         void computeHomography(cv::Mat &grayImage) ;
         std::vector<cv::DMatch> match_and_filter(const cv::Mat& descriptors);
-        void image_diff(const cv::Mat &image, const cv::Mat &depth) ;
+        //void image_diff(const cv::Mat &image, const cv::Mat &depth) ;
+        void image_diff(const cv::Mat &image, cloud_type::ConstPtr cloud);
 
         //int decimation = 1 ;
         //cv::Rect MovingObjectFilter::computeRoi(const cv::Mat & image, const std::vector<float> & roiRatios);
@@ -122,7 +130,7 @@ class MovingObjectFilter{
         cv::Mat Homography ; //homography
 
         //pcl::PointCloud<pcl::PointXYZRGB>::Ptr last_cloud ;
-        cloud_type last_cloud ;
+
         cloud_type object_cloud ; //save the moving object
         cloud_type filter_cloud ; //save the rest cloud(i.e don't include moving object)
 

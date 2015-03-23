@@ -53,7 +53,8 @@ class DynamicObjectFilter: public MovingObjectFilter{
 
             sync_ = new message_filters::Synchronizer<MySyncPolicy>(MySyncPolicy(queueSize), image_mono_sub_, image_depth_sub_, info_sub_) ;
             sync_->registerCallback(boost::bind(&DynamicObjectFilter::callback, this, _1, _2, _3)) ;
-            ROS_INFO("Test") ;
+            //ROS_INFO("Test") ;
+            //pnh.param("frame_id", frameId_, frameId_);
         }
         ~DynamicObjectFilter(){
             delete sync_ ;
