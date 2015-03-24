@@ -42,9 +42,9 @@
      }
      this->computeHomography(imageMono);
 
-     OpticalFlow *of ;
+     OpticalFlow of ;
 
-     of->process( imageMono );
+     of.process( imageMono );
 
      //cv::imshow("current View", imageMono) ;
 
