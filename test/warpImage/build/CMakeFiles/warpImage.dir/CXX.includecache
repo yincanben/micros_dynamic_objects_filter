@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/warpImage/warpImage.cpp
+iostream
+-
+opencv2/opencv.hpp
+-
+opencv2/core/core.hpp
+-
+opencv2/features2d/features2d.hpp
+-
+opencv2/calib3d/calib3d.hpp
+-
+opencv2/nonfree/nonfree.hpp
+-
+opencv2/nonfree/features2d.hpp
+-
+opencv2/imgproc/imgproc.hpp
+-
+opencv2/highgui/highgui.hpp
+-
+

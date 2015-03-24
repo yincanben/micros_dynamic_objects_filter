@@ -124,7 +124,7 @@ include_directories(
 
 ## Declare a cpp executable
 ##src/moving_object_filter.cpp
-add_executable(filter_node  src/filter_node.cpp src/moving_object_filter.cpp ) 
+add_executable(filter_node  src/filter_node.cpp src/moving_object_filter.cpp src/optical_flow.cpp) 
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes

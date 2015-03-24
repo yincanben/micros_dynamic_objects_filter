@@ -79,7 +79,7 @@ class DynamicObjectFilter: public MovingObjectFilter{
 					warned = true ;
 				}//for if
 			}//for else
-            if(rate_ < 5){
+            if(rate_ < 10){
                 rate_ ++ ;
             }else{
                 if( image->data.size() && depth->data.size() && cameraInfo->K[4] != 0 ){

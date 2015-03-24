@@ -6,6 +6,7 @@
  ************************************************************************/
  #include "moving_object_filter.h"
  #include "umath.h"
+ #include "optical_flow.h"
  
  MovingObjectFilter::MovingObjectFilter( int argc, char**argv )//:frameId_("base_link")
  {
@@ -21,6 +22,7 @@
     rgbPub_ = nh.advertise<sensor_msgs::Image>( "rgb" , 10 ) ;
     depthPub_ = nh.advertise<sensor_msgs::Image>( "depth", 10 ) ;
     cloudPub_ = nh.advertise<sensor_msgs::PointCloud2>("pointcloud2",10) ;
+
     //std::cout << "constructor" << std::endl ;
     //previous_frame.create(640,480,)
 }
@@ -39,6 +41,10 @@
         imageMono = image ;
      }
      this->computeHomography(imageMono);
+
+     OpticalFlow *of ;
+
+     of->process( imageMono );
 
      //cv::imshow("current View", imageMono) ;
 
@@ -119,6 +125,7 @@
          }
 
          //draw matches
+
          cv::namedWindow("matches") ;
          cv::drawMatches( lastImage, lastKeypoints, grayImage, keypoints, goodMatches,img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1),std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
          imshow("matches", img_matches) ;
