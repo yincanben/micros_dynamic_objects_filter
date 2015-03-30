@@ -44,7 +44,7 @@ int main( int argc, char**argv ){
 
             }
         }
-    }
+    }jd
     /*
     for( int rows = 1; rows<contours.rows; rows++){
         for( int cols = 1; cols<contours.cols; cols++){
