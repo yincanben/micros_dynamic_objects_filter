@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+   <FileVersion major="1" minor="6" />
+   <Project>
+      <Option title="canny" />
+      <Option makefile_is_custom="1" />
+      <Option compiler="gcc" />
+      <Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\..\..\usr\local\share\;CMake Files\..\..\..\..\..\..\..\usr\local\share\OpenCV\;" />
+      <Build>
+      <Target title="all">
+         <Option working_dir="/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 all" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="canny">
+         <Option output="/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/canny" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/4.6" />
+            <Add directory="/usr/include/c++/4.6/backward" />
+            <Add directory="/usr/include/c++/4.6/i686-linux-gnu/." />
+            <Add directory="/usr/include/i386-linux-gnu" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.6/include" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.6/include-fixed" />
+            <Add directory="/usr/local/include" />
+            <Add directory="/usr/local/include/opencv" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 canny" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="canny/fast">
+         <Option output="/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/canny" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/usr/include" />
+            <Add directory="/usr/include/c++/4.6" />
+            <Add directory="/usr/include/c++/4.6/backward" />
+            <Add directory="/usr/include/c++/4.6/i686-linux-gnu/." />
+            <Add directory="/usr/include/i386-linux-gnu" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.6/include" />
+            <Add directory="/usr/lib/gcc/i686-linux-gnu/4.6/include-fixed" />
+            <Add directory="/usr/local/include" />
+            <Add directory="/usr/local/include/opencv" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 canny/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="rebuild_cache">
+         <Option working_dir="/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 rebuild_cache" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny-build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      </Build>
+      <Unit filename="/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny/canny.cpp">
+      </Unit>
+      <Unit filename="/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\" />
+      </Unit>
+      <Unit filename="/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny/../../../../../../../usr/local/share/OpenCV/OpenCVConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\..\usr\local\share\OpenCV\" />
+      </Unit>
+      <Unit filename="/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny/../../../../../../../usr/local/share/OpenCV/OpenCVConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\..\usr\local\share\OpenCV\" />
+      </Unit>
+      <Unit filename="/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny/../../../../../../../usr/local/share/OpenCV/OpenCVModules.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\..\usr\local\share\OpenCV\" />
+      </Unit>
+      <Unit filename="/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny/../../../../../../../usr/local/share/OpenCV/OpenCVModules-release.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\..\..\..\usr\local\share\OpenCV\" />
+      </Unit>
+   </Project>
+</CodeBlocks_project_file>

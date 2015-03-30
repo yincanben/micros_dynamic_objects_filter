@@ -42,9 +42,9 @@
      }
      this->computeHomography(imageMono);
 
-     OpticalFlow of ;
+     //OpticalFlow of ;
 
-     of.process( imageMono );
+     //of.process( imageMono );
 
      //cv::imshow("current View", imageMono) ;
 
@@ -54,6 +54,7 @@
      //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>) ;
      cloud = this->cloudFromDepthRGB( image, depth, cx, cy, fx, fy, 1.0 ) ;
      this->image_diff( imageMono, cloud ) ;
+     //this->pcl_segmentation(cloud);
      /*
      sensor_msgs::PointCloud2::Ptr cloudMsg(new sensor_msgs::PointCloud2) ;
      pcl::toROSMsg(*cloud, *cloudMsg) ;
@@ -67,12 +68,11 @@
      //cv::imshow( "Display window", image );                   // Show our image inside it.
      //cv::waitKey(0);
      //rgbPub_.publish(binary_image) ;
-
-     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>) ;
-     cloud = this->cloudFromDepthRGB( image, depth, cx, cy, fx, fy, 1 ) ;
-     this->image_separate(cloud);
-     //this->pcl_segmentation(cloud);
      */
+     //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>) ;
+     //cloud = this->cloudFromDepthRGB( image, depth, cx, cy, fx, fy, 1 ) ;
+     //this->image_separate(cloud);
+
 
 }
 
@@ -308,10 +308,10 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
                         //float lastDepthValue = (float)lastDepth.at<uint16_t>( vv , uu )*0.001f ;
                         //cout << "$$$$$$$$,lastdepth:" << lastDepth.at<uint16_t>( rows,cols ) << endl ;
 
-                        if( lastDepthValue - depthValue > 0.2 ){
+                        if( lastDepthValue - depthValue > 0.5 ){
                             lastFrame.at<unsigned char>(warpPt.x ,warpPt.y) = 255 ;
                             //currentFrame.at<unsigned char>(rows,cols) = 0 ;
-                        }else if( depthValue -lastDepthValue > 0.2 ){
+                        }else if( depthValue -lastDepthValue > 0.5 ){
                             //lastFrame.at<unsigned char>(rows,cols) = 0 ;
                             currentFrame.at<unsigned char>(rows, cols) = 255 ;
                         }else{
