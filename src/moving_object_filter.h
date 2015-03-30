@@ -88,6 +88,7 @@ class MovingObjectFilter{
 
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
         cloud_type lastCloud ;
+        pcl::visualization::CloudViewer cloud_viewer ;
 
         double threshod ;
 

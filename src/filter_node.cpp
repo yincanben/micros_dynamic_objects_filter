@@ -94,6 +94,7 @@ class DynamicObjectFilter: public MovingObjectFilter{
                     cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depth);
                     this->processData( ptrImage->image, ptrDepth->image, cx, cy, fx, fy);
 
+
                     //ROS_INFO("image depth CameraInfo");
                 }
                 rate_ = 0 ;
@@ -115,6 +116,7 @@ int main( int argc, char**argv ){
     ros::init( argc,argv,"filter_node");
 
     DynamicObjectFilter filter( argc, argv ) ;
+
 
     ros::spin() ;
 
