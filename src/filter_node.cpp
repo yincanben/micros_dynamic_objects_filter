@@ -79,8 +79,9 @@ class DynamicObjectFilter: public MovingObjectFilter{
 					warned = true ;
 				}//for if
 			}//for else
-            if(rate_ < 10){
+            if(rate_ < 30){
                 rate_ ++ ;
+                //cout << "rate_ :" << rate_ << endl ;
             }else{
                 if( image->data.size() && depth->data.size() && cameraInfo->K[4] != 0 ){
                     image_geometry::PinholeCameraModel model ;
