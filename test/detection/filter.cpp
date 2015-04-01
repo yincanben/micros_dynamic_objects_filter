@@ -9,11 +9,14 @@
 #include "filter.h"
 using namespace std;
 
-void image_diff(const cv::Mat&lastImage, const cv::Mat &currentImage, cloud_type::ConstPtr lastCloud, cloud_type::ConstPtr currentCloud);
-void computeHomography(cv::Mat &lastImage, cv::Mat &currentImage, cv::Mat Homography);
+void image_diff(const cv::Mat &lastImage, const cv::Mat &currentImage, cloud_type::ConstPtr lastCloud, cloud_type::ConstPtr currentCloud, cv::Mat &Homography);
+
+cv::Mat computeHomography(cv::Mat &lastImage, cv::Mat &currentImage );
+bool image_extract_cluster( cloud_type::ConstPtr cloud ) ;
+void pcl_segmentation( cloud_type::ConstPtr cloud ) ;
 Eigen::Vector3f v1 ;
 Eigen::Vector3f v2 ;
-cv::Mat Homography ;
+
 std::vector<Eigen::Vector3f> previous_coordinate ;
 std::vector<Eigen::Vector3f> current_coordinate ;
 
@@ -27,26 +30,28 @@ int main(int argc, char**argv){
 	    cout << "Could not read the image!" << endl ;
 	 	return -1 ;
 	}
-
+    cv::Mat Homography ;
     cv::cvtColor(lastImage, lastGray, CV_BGR2GRAY) ;
     cv::cvtColor(currentImage, currentGray, CV_BGR2GRAY) ;
 
     //read PointCloud
-    /*
-    cloud_type::ptr lastCloud (new cloud_type)  ;
-    cloud_type::ptr currentCloud(new cloud_type) ;
+    
+    cloud_type::Ptr lastCloud (new cloud_type)  ;
+    cloud_type::Ptr currentCloud(new cloud_type) ;
     if( pcl::io::loadPCDFile<point_type>(argv[3], *lastCloud)==-1 || pcl::io::loadPCDFile<point_type>(argv[4], *currentCloud)==-1 ){
         cout << "Couldn't load PCD file!" << endl ;
         return -1 ;
-    }*/
+    }
     
     //calculate Homography
-    computeHomography(lastGray, currentGray, Homography);
+    Homography = computeHomography(lastGray, currentGray );
+    image_diff( lastGray, currentGray, lastCloud, currentCloud, Homography) ;
+    pcl_segmentation(currentCloud) ;
 
 
 	return 0;
 }
-void  computeHomography(cv::Mat &lastImage, cv::Mat &currentImage, cv::Mat Homography){
+cv::Mat  computeHomography(cv::Mat &lastImage, cv::Mat &currentImage ){
 
      //Step 1: Detect the keypoints using ORB Detector
      cv::ORB orb ;
@@ -72,7 +77,7 @@ void  computeHomography(cv::Mat &lastImage, cv::Mat &currentImage, cv::Mat Homog
      std::vector<cv::Point2f> lastPoint ;
      std::vector<cv::Point2f> currentPoint ;
      cv::Mat shft ;
-     //cv::Mat  Homography ;
+     cv::Mat  Homography ;
 
      if(!lastDescriptors.empty()){
          //cout << "************" << endl ;
@@ -128,10 +133,10 @@ void  computeHomography(cv::Mat &lastImage, cv::Mat &currentImage, cv::Mat Homog
          
 
      }
-     //return Homography ;
+     return Homography ;
 
  }
-void image_diff(const cv::Mat&lastImage, const cv::Mat &currentImage, cloud_type::ConstPtr lastCloud, cloud_type::ConstPtr currentCloud){
+void image_diff(const cv::Mat &lastImage, const cv::Mat &currentImage, cloud_type::ConstPtr lastCloud, cloud_type::ConstPtr currentCloud, cv::Mat &Homography){
     cv::Mat lastBlurImage, currentBlurImage ;
     cv::GaussianBlur( lastImage, lastBlurImage, cv::Size( 11, 11 ), 0, 0 );
     cv::GaussianBlur( currentImage, currentBlurImage, cv::Size( 11, 11 ), 0, 0 );
@@ -140,18 +145,23 @@ void image_diff(const cv::Mat&lastImage, const cv::Mat &currentImage, cloud_type
     cv::Mat lastFrame( 480,640, CV_8UC1, cv::Scalar(0) );
     cv::Mat currentFrame( 480,640, CV_8UC1, cv::Scalar(0) );
     double threshod = 40 ;
-    cv::namedWindow("lastFrame") ;
-    cv::namedWindow("currentFrame") ;
+    //cv::namedWindow("lastFrame") ;
+    //cv::namedWindow("currentFrame") ;
+
     for( int rows=0; rows < lastImage.rows; rows++ ){
         for(int cols=0; cols< lastImage.cols; cols++){
+
             cv::Mat srcMat = cv::Mat::zeros(3,1,CV_64FC1);
             srcMat.at<double>(0,0) = cols ;
             srcMat.at<double>(1,0) = rows;
             srcMat.at<double>(2,0) = 1.0 ;
+
             cv::Mat warpMat = Homography * srcMat ;
             cv::Point warpPt ;
+
             warpPt.x = cvRound( warpMat.at<double>(0,0) / warpMat.at<double>(2,0) ) ;
             warpPt.y = cvRound( warpMat.at<double>(1,0) / warpMat.at<double>(2,0) ) ;
+
 
             if( warpPt.x>0 && warpPt.x<640  &&  warpPt.y>0 && warpPt.y< 480){
 
@@ -175,7 +185,6 @@ void image_diff(const cv::Mat&lastImage, const cv::Mat &currentImage, cloud_type
 
                         currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
                         v2 << currentCloud->at(warpPt.x,warpPt.y).x , currentCloud->at(warpPt.x,warpPt.y).y , currentCloud->at(warpPt.x,warpPt.y).z ;
-                            //v2 << cloud->at(cols,rows).x , cloud->at(cols,rows).y , cloud->at(cols,rows).z ;
                         current_coordinate.push_back(v2) ;
 
                     }else{
@@ -191,12 +200,219 @@ void image_diff(const cv::Mat&lastImage, const cv::Mat &currentImage, cloud_type
         }
     }
 
-    cv::imshow("lastFrame",lastFrame);
-    cv::imshow("currentFrame",currentFrame) ;
+    //cv::imshow("lastFrame",lastFrame);
+    imwrite( "lastFrame.jpg", lastFrame ) ;
+    //cv::imshow("currentFrame",currentFrame) ;
+    imwrite( "currentFrame.jpg", currentFrame );
     
     if(cv::waitKey(1) > 0){
         exit(0);
     }
 
 
+}
+
+void pcl_segmentation( cloud_type::ConstPtr cloud ){
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered2 (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    // Step 1: Filter out NaNs from data
+    //ros::Time last = ros::Time::now() ;
+    pcl::PassThrough<pcl::PointXYZRGB> pass ;
+    pass.setInputCloud (cloud); 
+    pass.setFilterFieldName ("z"); 
+    pass.setFilterLimits (0.5, 6.0); 
+    pass.filter (*cloud_filtered);
+
+    //
+    //pass.setInputCloud (cloud_filtered); 
+    //pass.setFilterFieldName ("x"); 
+    //pass.setFilterLimits (-4.0, 4.0); 
+    //pass.setFilterLimitsNegative (true); 
+    //pass.filter (*cloud_filtered); 
+
+    //pass.setInputCloud (cloud_filtered); 
+    //pass.setFilterFieldName ("y"); 
+    //pass.setFilterLimits (-4.0, 4.0); 
+    //pass.filter (*cloud_filtered);
+    //
+
+    // Step 2: Filter out statistical outliers*****************influence the speed
+    
+    //pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor ;
+    //sor.setInputCloud(cloud_filtered) ;
+    //sor.setMeanK(50) ;
+    //sor.setStddevMulThresh(1.0) ;
+    //sor.filter(*cloud_filtered) ;
+
+    // Step 3: Downsample the point cloud (to save time in the next step)
+    
+    pcl::VoxelGrid<pcl::PointXYZRGB> downSampler;
+    downSampler.setInputCloud (cloud_filtered); 
+    downSampler.setLeafSize (0.01f, 0.01f, 0.01f); 
+    downSampler.filter (*cloud_filtered2);
+    
+        
+    // Step 4: Remove the ground plane using RANSAC 
+    pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients); 
+    pcl::PointIndices::Ptr inliers (new pcl::PointIndices); 
+    pcl::SACSegmentation<pcl::PointXYZRGB> seg;
+    seg.setOptimizeCoefficients (true); // Optional 
+    //seg.setMaxIteractions(100) ; //Optional,maybe can be lower
+    // Mandatory 
+    seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
+    //seg.setMethodType (pcl::SACMODEL_NORMAL_PARALLEL_PLANE) ;
+    seg.setAxis(Eigen::Vector3f(0.0,1.0,0.0));
+    seg.setEpsAngle (pcl::deg2rad (10.0));
+    //seg.setNormalDistanceWeight (0.1);
+    seg.setMethodType (pcl::SAC_RANSAC); 
+    seg.setDistanceThreshold (0.01); //1cm
+    seg.setInputCloud (cloud_filtered2->makeShared()); 
+    seg.segment (*inliers, *coefficients);
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZRGB> ()) ;
+    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+    extract.setInputCloud (cloud_filtered2);
+    // Step 4.1: Extract the points that lie in the ground plane
+    extract.setIndices (inliers);
+    if( inliers->indices.size() > 4000 ){
+        cout << "indices size =  " << inliers->indices.size() << endl ;
+        extract.setNegative (false);
+        extract.filter (*cloud_plane);
+    }
+    // Step 4.2: Extract the points that are objects(i.e. are not in the ground plane)
+    extract.setNegative (true);
+    extract.filter ( *cloud_filtered2 ) ;
+        
+    if (inliers->indices.size () == 0) { 
+        PCL_ERROR ("Could not estimate a planar model for the given dataset."); 
+        //exit(0); 
+    } 
+    // PAINT SURFACE
+    //
+    //for (unsigned int i = 0; i < inliers->indices.size(); i++){ 
+    //    int idx = inliers->indices[i]; 
+    //    cloud_filtered2->points[idx].r = 255; 
+    //    cloud_filtered2->points[idx].b = 0; 
+    //}
+        
+    // Step 5: EuclideanCluster Extract the moving objects
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
+    tree->setInputCloud (cloud_filtered2);
+
+    std::vector<pcl::PointIndices> cluster_indices ;
+    pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec ;
+    ec.setClusterTolerance (0.02) ; // 2cm
+    ec.setMinClusterSize (1000) ;
+    ec.setMaxClusterSize (25000) ;
+    ec.setSearchMethod (tree) ;
+    ec.setInputCloud (cloud_filtered2) ;
+    ec.extract (cluster_indices) ;
+    //ros::Time now = ros::Time::now() ;
+    //ros::Duration time = now - last ;
+    //cout << "Time : " << time.nsec << endl;
+
+    cout << "The size of cluster_indices : " << cluster_indices.size() << endl;
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
+    double minX(0.0), minY(0.0), minZ(0.0), maxX(0.0), maxY(0.0), maxZ(0.0) ;
+    point_type cluster_point ;
+
+
+    for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it){
+        for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++){
+            cluster_point = cloud_filtered2->points[*pit] ;
+            cloud_cluster->points.push_back (cluster_point); 
+        }
+        cloud_cluster->width = cloud_cluster->points.size ();
+        cloud_cluster->height = 1;
+        //cloud_cluster->width = 640 ;
+        //cloud_cluster->height= 480 ;
+        //cloud_cluster->resize(cloud_cluster->width * cloud_cluster->height) ;
+        cloud_cluster->is_dense = true;
+        
+        if(image_extract_cluster(cloud_cluster)) {
+            //object_cloud += *cloud_cluster ;
+            /*
+            if(!cloud_viewer.wasStopped()){
+                cloud_viewer.showCloud(cloud_cluster);
+            }*/
+            //cloud_viewer.showCloud( object_cloud );
+            //current_coordinate.clear();
+            //std::cout << "true" << std::endl ;
+            //break ;
+        }else{
+            //cloud_cluster->clear() ;
+            continue ;
+        }
+            
+        //hull.setInputCloud(cloud_cluster) ;
+        //hull.setAlpha(0.1);
+        //hull.setDimension( 3 );
+        //hull.reconstruct( *concaveHull, polygons );
+        //for(int i = 0; i < polygons.size(); i++)
+        //std::cout << polygons[i] << std::endl;
+            
+        std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
+    }
+        
+
+    //ros::Duration next = ros::Time::now() - now ;
+    //cout << "next = " << next.nsec << endl ;
+    //viewer.showCloud(cloud_cluster); 
+    //cloud_viewer->showCloud(cloud_plane) ;
+
+}
+
+bool image_extract_cluster( cloud_type::ConstPtr cloud ){
+    double minX(100.0), minY(100.0), minZ(100.0), maxX(0.0), maxY(0.0), maxZ(0.0), averageZ(0.0) ;
+    int count = 0 ;
+    for(int i = 0; i<cloud->points.size(); i++){
+        // for min  
+        if ( cloud->points[i].x < minX )
+            minX = cloud->points[i].x ;
+        if ( cloud->points[i].y < minY )
+            minY = cloud->points[i].y ;
+        if (cloud->points[i].z < minZ)
+            minZ = cloud->points[i].z ;
+        //for max
+        if (cloud->points[i].x > maxX)
+            maxX = cloud->points[i].x ;
+        if (cloud->points[i].y > maxY)
+            maxY = cloud->points[i].y ;
+        if (cloud->points[i].z > maxZ)
+            maxZ = cloud->points[i].z ;
+
+        averageZ += cloud->points[i].z ;
+    }
+    averageZ = averageZ / cloud->points.size() ;
+    for (std::vector<Eigen::Vector3f>::const_iterator it = current_coordinate.begin(); it != current_coordinate.end(); ++it){
+        //Eigen::Vector3f v = *it ;
+        if( it->x()>minX && it->x()<maxX  &&  it->y()>minY && it->y()<maxY  &&  abs((it->z()) - averageZ )<0.2){
+            if(it->z()<minZ || it->z()>maxZ)
+                continue ;
+
+            count ++ ;
+        }
+    }
+
+    double area = ( maxX- minX ) * (maxY - minY) ;
+    cout << "area= " << area << endl ;
+    double density = area / (double) count ;
+    //cout << "density: " << density << endl ;
+    //cout << "The size of PointCloud: " << cloud->points.size() << endl ;
+    //std::cout << "size = "  << current_coordinate.size << std::endl ;
+    /*
+    if(count > 1500)
+        std::cout << "count = " << count << std::endl ;
+    */
+    if(density > 0.1 && density < 100 ){
+        cout << "density: " << density << endl ;
+        cout << "The size of PointCloud: " << cloud->points.size() << endl ;
+
+        return true ;
+    }else{
+        return false ;
+    }
 }
