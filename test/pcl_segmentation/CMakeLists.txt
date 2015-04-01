@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 2.8)
+project(ObjectDetection)
+
+#SET(CMAKE_BUILD_TYPE "Debug")
+#SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -Wall -g -ggdb"${SSE_FLAGS})
+#SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -wall"${SSE_FLAGS})
+
+set(PCL_BUILD_TYPE Release)
+
+find_package( OpenCV REQUIRED )
+find_package(PCL 1.7 REQUIRED)
+
+include_directories(${PCL_INCLUDE_DIRS})
+
+link_directories(${PCL_LIBRARY_DIRS})
+
+add_definitions(${PCL_DEFINITIONS})
+
+
+
+add_executable(pcl_segmentation src/pcl_segmentation.cpp)
+target_link_libraries(pcl_segmentation ${PCL_LIBRARIES})
+target_link_libraries(pcl_segmentation ${OpenCV_LIBS})
+
+

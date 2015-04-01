@@ -145,6 +145,7 @@ void image_diff(const cv::Mat &lastImage, const cv::Mat &currentImage, cloud_typ
     cv::Mat lastFrame( 480,640, CV_8UC1, cv::Scalar(0) );
     cv::Mat currentFrame( 480,640, CV_8UC1, cv::Scalar(0) );
     double threshod = 40 ;
+    cv::Mat  frame( 480,640, CV_8UC1, cv::Scalar(0) );
     //cv::namedWindow("lastFrame") ;
     //cv::namedWindow("currentFrame") ;
 
@@ -174,16 +175,18 @@ void image_diff(const cv::Mat &lastImage, const cv::Mat &currentImage, cloud_typ
 
                 if( imageDiff > threshod ){
                         //currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
+                    frame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
 
                     lastDepthValue = isnan( lastCloud->at( cols,rows).z) ? 20 : lastCloud->at(cols,rows).z ;
                     depthValue = isnan( currentCloud->at(warpPt.x, warpPt.y).z) ? 20 : currentCloud->at(warpPt.x, warpPt.y).z ;
                     if( lastDepthValue - depthValue > 0.2 ){
-                        lastFrame.at<unsigned char>(rows, cols) = 255 ;
+                        currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
+                        //lastFrame.at<unsigned char>(rows, cols) = 255 ;
                         v1 << lastCloud->at(cols,rows).x , lastCloud->at(cols,rows).y , lastCloud->at(cols,rows).z ;
                         previous_coordinate.push_back(v1) ;
                     }else if( depthValue -lastDepthValue > 0.2 ){
-
-                        currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
+                        lastFrame.at<unsigned char>(rows, cols) = 255 ;
+                        //currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
                         v2 << currentCloud->at(warpPt.x,warpPt.y).x , currentCloud->at(warpPt.x,warpPt.y).y , currentCloud->at(warpPt.x,warpPt.y).z ;
                         current_coordinate.push_back(v2) ;
 
@@ -204,6 +207,7 @@ void image_diff(const cv::Mat &lastImage, const cv::Mat &currentImage, cloud_typ
     imwrite( "lastFrame.jpg", lastFrame ) ;
     //cv::imshow("currentFrame",currentFrame) ;
     imwrite( "currentFrame.jpg", currentFrame );
+    imwrite("cuframe.jpg", frame);
     
     if(cv::waitKey(1) > 0){
         exit(0);
@@ -318,6 +322,7 @@ void pcl_segmentation( cloud_type::ConstPtr cloud ){
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
     double minX(0.0), minY(0.0), minZ(0.0), maxX(0.0), maxY(0.0), maxZ(0.0) ;
     point_type cluster_point ;
+    int num = 0 ;
 
 
     for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it){
@@ -331,8 +336,16 @@ void pcl_segmentation( cloud_type::ConstPtr cloud ){
         //cloud_cluster->height= 480 ;
         //cloud_cluster->resize(cloud_cluster->width * cloud_cluster->height) ;
         cloud_cluster->is_dense = true;
-        
+        unsigned int filesSaved = 0 ;
         if(image_extract_cluster(cloud_cluster)) {
+            stringstream stream;
+            stream << "ResultCloud" << filesSaved << ".pcd";
+            string filename = stream.str();
+            if (pcl::io::savePCDFile(filename, *cloud_cluster, true) == 0){
+                filesSaved++;
+                cout << "Saved " << filename << "." << endl;
+            }
+            num++ ;
             //object_cloud += *cloud_cluster ;
             /*
             if(!cloud_viewer.wasStopped()){
@@ -357,7 +370,7 @@ void pcl_segmentation( cloud_type::ConstPtr cloud ){
         std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
     }
         
-
+    cout << "num = " << num << endl ;
     //ros::Duration next = ros::Time::now() - now ;
     //cout << "next = " << next.nsec << endl ;
     //viewer.showCloud(cloud_cluster); 
@@ -407,7 +420,7 @@ bool image_extract_cluster( cloud_type::ConstPtr cloud ){
     if(count > 1500)
         std::cout << "count = " << count << std::endl ;
     */
-    if(density > 0.1 && density < 100 ){
+    if(density > 0.4 && density < 100 ){
         cout << "density: " << density << endl ;
         cout << "The size of PointCloud: " << cloud->points.size() << endl ;
 
