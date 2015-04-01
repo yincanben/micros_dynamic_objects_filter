@@ -1,0 +1,10 @@
+/*************************************************************************
+	> File Name: filter.cpp
+	> Author: yincanben
+	> Mail: yincanben@163.com
+	> Created Time: Wed 01 Apr 2015 10:26:00 AM CST
+ ************************************************************************/
+
+#include<iostream>
+using namespace std;
+
