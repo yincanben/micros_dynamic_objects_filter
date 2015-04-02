@@ -13,6 +13,6 @@ add_executable (filter filter.cpp )
 target_link_libraries (filter ${OpenCV_LIBS} ${PCL_LIBRARIES})
 
 
-add_executable(pcl_segmentation  pcl_segmentation.cpp)
-target_link_libraries(pcl_segmentation ${OpenCV_LIBS} )
-target_link_libraries(pcl_segmentation ${PCL_LIBRARIES})
+#add_executable(pcl_segmentation  pcl_segmentation.cpp)
+#target_link_libraries(pcl_segmentation ${OpenCV_LIBS} )
+#target_link_libraries(pcl_segmentation ${PCL_LIBRARIES})

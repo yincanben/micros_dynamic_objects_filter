@@ -74,7 +74,7 @@ int main (int argc, char** argv){
     pass.setFilterLimitsNegative (true);
     pass.filter (*cloud_pre_filter);
     
-    pcl::io::savePCDFileASCII("../images/pre_filtered.pcd", *cloud_pre_filter) ;
+    //pcl::io::savePCDFileASCII("../images/pre_filtered.pcd", *cloud_pre_filter) ;
     cout << "PointCloud after filtering has: " << cloud_pre_filter->points.size () << " data points." << endl ; /
     */
     // Create the filtering object: downsample the dataset using a leaf size of 1cm
@@ -84,7 +84,7 @@ int main (int argc, char** argv){
     vg.setLeafSize (0.01f, 0.01f, 0.01f) ;
     vg.filter (*cloud_filtered) ;
     cout << "PointCloud after filtering has: " << cloud_filtered->points.size ()  << " data points." << endl ; 
-    pcl::io::savePCDFileASCII ("../images/cloud_filtered_pcd.pcd", *cloud_filtered) ;
+    //pcl::io::savePCDFileASCII ("../images/cloud_filtered_pcd.pcd", *cloud_filtered) ;
 
     // Create the segmentation object for the planar model and set all the parameters
     pcl::SACSegmentation<pcl::PointXYZ> seg ; // Create the segmentation object.

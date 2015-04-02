@@ -176,20 +176,24 @@ void image_diff(const cv::Mat &lastImage, const cv::Mat &currentImage, cloud_typ
                 if( imageDiff > threshod ){
                         //currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
                     frame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
-
                     lastDepthValue = isnan( lastCloud->at( cols,rows).z) ? 20 : lastCloud->at(cols,rows).z ;
                     depthValue = isnan( currentCloud->at(warpPt.x, warpPt.y).z) ? 20 : currentCloud->at(warpPt.x, warpPt.y).z ;
-                    if( lastDepthValue - depthValue > 0.2 ){
-                        currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
-                        //lastFrame.at<unsigned char>(rows, cols) = 255 ;
-                        v1 << lastCloud->at(cols,rows).x , lastCloud->at(cols,rows).y , lastCloud->at(cols,rows).z ;
-                        previous_coordinate.push_back(v1) ;
-                    }else if( depthValue -lastDepthValue > 0.2 ){
-                        lastFrame.at<unsigned char>(rows, cols) = 255 ;
-                        //currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
-                        v2 << currentCloud->at(warpPt.x,warpPt.y).x , currentCloud->at(warpPt.x,warpPt.y).y , currentCloud->at(warpPt.x,warpPt.y).z ;
-                        current_coordinate.push_back(v2) ;
 
+
+                    if( lastDepthValue - depthValue > 0.2 ){
+                        //if(!isnan( lastCloud->at( cols,rows).z)){
+                            currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
+                            //lastFrame.at<unsigned char>(rows, cols) = 255 ;
+                            v1 << currentCloud->at(warpPt.x, warpPt.y).x , currentCloud->at(warpPt.x, warpPt.y).y , currentCloud->at(warpPt.x, warpPt.y).z ;
+                            current_coordinate.push_back(v1) ;
+                        //}
+                    }else if( depthValue -lastDepthValue > 0.2 ){
+                        //if(!isnan( currentCloud->at(warpPt.x, warpPt.y).z)){
+                            lastFrame.at<unsigned char>(rows, cols) = 255 ;
+                            //currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
+                            v2 << lastCloud->at( cols,rows).x , lastCloud->at( cols,rows).y , lastCloud->at( cols,rows).z ;
+                            previous_coordinate.push_back(v2) ;
+                        //}
                     }else{
                         continue ;
                     }
@@ -207,7 +211,7 @@ void image_diff(const cv::Mat &lastImage, const cv::Mat &currentImage, cloud_typ
     imwrite( "lastFrame.jpg", lastFrame ) ;
     //cv::imshow("currentFrame",currentFrame) ;
     imwrite( "currentFrame.jpg", currentFrame );
-    imwrite("cuframe.jpg", frame);
+    imwrite("diffImage.jpg", frame);
     
     if(cv::waitKey(1) > 0){
         exit(0);
@@ -215,19 +219,118 @@ void image_diff(const cv::Mat &lastImage, const cv::Mat &currentImage, cloud_typ
 
 
 }
+/*
+void pcl_segmentation( cloud_type::ConstPtr cloud ){
+    
+    cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << endl ; //*
+    pcl::VoxelGrid<pcl::PointXYZ> vg ;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>) ;
+    vg.setInputCloud (cloud) ;
+    vg.setLeafSize (0.01f, 0.01f, 0.01f) ;
+    vg.filter (*cloud_filtered) ;
+    cout << "PointCloud after filtering has: " << cloud_filtered->points.size ()  << " data points." << endl ; 
+    //pcl::io::savePCDFileASCII ("../images/cloud_filtered_pcd.pcd", *cloud_filtered) ;
+    
+    //Create the segmentation object for the planar model and set all the parameters
+    pcl::SACSegmentation<pcl::PointXYZ> seg ; // Create the segmentation object.
+    pcl::PointIndices::Ptr inliers (new pcl::PointIndices) ;
+    // Object for storing the plane model coefficients.
+    pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients) ;
+    //
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZ> ()) ;
+    pcl::PCDWriter writer ;
+    //*an optimization is performed over the estimated coefficients to minimize or reduce
+    // * the mean-squared-error with respect the all of the 3D points.If you know you have outliers
+    //* an no noise,an optimization needn't set to save computational time .
+    seg.setOptimizeCoefficients (true) ; //
+    //seg.setModelType (pcl::SACMODEL_PLANE) ;
+    //seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
+    seg.setModelType (pcl::SACMODEL_NORMAL_PARALLEL_PLANE);
+    seg.setAxis(Eigen::Vector3f(0,0,1));
+    seg.setEpsAngle (0);
+    //seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
+    //seg.setAxis(Eigen::Vector3f(0,1,0));
+    //seg.setEpsAngle (0);
+    seg.setMethodType (pcl::SAC_RANSAC) ;
+    seg.setMaxIterations (100) ;
+    seg.setDistanceThreshold (0.01) ;
+    pcl::visualization::CloudViewer viewer("PCL OpenNI Viewer"); 
+    int i=0, nr_points = (int) cloud_filtered->points.size ();
+    //remove the planar 
+    while (cloud_filtered->points.size () > 0.5 * nr_points){
+        // Segment the largest planar component from the remaining cloud
+        seg.setInputCloud (cloud_filtered->makeShared());
+        seg.segment (*inliers, *coefficients);
+        cout << "inliers->indices.size: " <<inliers->indices.size() << endl ;
+        if (inliers->indices.size () < 1000){
+            std::cout << "Could not estimate a planar model for the given dataset." << std::endl;
+            break;
+    }
+    //PAINT SURFACE
+
+    
+    viewer.showCloud(cloud_filtered);
+    // Extract the planar inliers from the input cloud
+    pcl::ExtractIndices<pcl::PointXYZ> extract;
+    extract.setInputCloud (cloud_filtered);
+    extract.setIndices (inliers);
+    extract.setNegative (false);
+    
+    // Get the points associated with the planar surface
+    extract.filter (*cloud_plane);
+    std::cout << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
+    
+    // Remove the planar inliers, extract the rest
+    extract.setNegative (true);
+        extract.filter (*cloud_f);
+        *cloud_filtered = *cloud_f;
+    }
+    
+    // Creating the KdTree object for the search method of the extraction
+    pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+    tree->setInputCloud (cloud_filtered);
+    
+    std::vector<pcl::PointIndices> cluster_indices ;
+    pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec ;
+    ec.setClusterTolerance (0.02) ; // 2cm
+    ec.setMinClusterSize (1000) ;
+    ec.setMaxClusterSize (25000) ;
+    ec.setSearchMethod (tree) ;
+    ec.setInputCloud (cloud_filtered) ;
+    ec.extract (cluster_indices) ;
+    
+    int j = 0 ;
+    for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it){
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+        for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
+            cloud_cluster->points.push_back (cloud_filtered->points[*pit]);
+        cloud_cluster->width = cloud_cluster->points.size ();
+        cloud_cluster->height = 1;
+        cloud_cluster->is_dense = true;
+    
+        std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
+        std::stringstream ss;
+        ss << "cloud_cluster_" << j << ".pcd";
+        writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false);
+        j++;
+    }
+    
+}*/
 
 void pcl_segmentation( cloud_type::ConstPtr cloud ){
 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered2 (new pcl::PointCloud<pcl::PointXYZRGB>);
+    //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
+    //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered2 (new pcl::PointCloud<pcl::PointXYZRGB>);
 
     // Step 1: Filter out NaNs from data
     //ros::Time last = ros::Time::now() ;
+    /*
     pcl::PassThrough<pcl::PointXYZRGB> pass ;
     pass.setInputCloud (cloud); 
     pass.setFilterFieldName ("z"); 
     pass.setFilterLimits (0.5, 6.0); 
     pass.filter (*cloud_filtered);
+    */
 
     //
     //pass.setInputCloud (cloud_filtered); 
@@ -251,31 +354,65 @@ void pcl_segmentation( cloud_type::ConstPtr cloud ){
     //sor.filter(*cloud_filtered) ;
 
     // Step 3: Downsample the point cloud (to save time in the next step)
-    
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::VoxelGrid<pcl::PointXYZRGB> downSampler;
-    downSampler.setInputCloud (cloud_filtered); 
+    downSampler.setInputCloud (cloud);
     downSampler.setLeafSize (0.01f, 0.01f, 0.01f); 
-    downSampler.filter (*cloud_filtered2);
+    downSampler.filter (*cloud_filtered);
+    cout << "PointCloud after filtering has: " << cloud_filtered->points.size ()  << " data points." << endl ;
     
         
     // Step 4: Remove the ground plane using RANSAC 
     pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients); 
-    pcl::PointIndices::Ptr inliers (new pcl::PointIndices); 
-    pcl::SACSegmentation<pcl::PointXYZRGB> seg;
+    pcl::SACSegmentation<pcl::PointXYZRGB> seg ;
+    pcl::PointIndices::Ptr inliers (new pcl::PointIndices) ;
     seg.setOptimizeCoefficients (true); // Optional 
-    //seg.setMaxIteractions(100) ; //Optional,maybe can be lower
-    // Mandatory 
-    seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
-    //seg.setMethodType (pcl::SACMODEL_NORMAL_PARALLEL_PLANE) ;
-    seg.setAxis(Eigen::Vector3f(0.0,1.0,0.0));
-    seg.setEpsAngle (pcl::deg2rad (10.0));
-    //seg.setNormalDistanceWeight (0.1);
-    seg.setMethodType (pcl::SAC_RANSAC); 
-    seg.setDistanceThreshold (0.01); //1cm
-    seg.setInputCloud (cloud_filtered2->makeShared()); 
-    seg.segment (*inliers, *coefficients);
 
+    seg.setMethodType (pcl::SACMODEL_NORMAL_PARALLEL_PLANE) ;
+    seg.setAxis(Eigen::Vector3f(0,0,1));
+    seg.setMethodType (pcl::SAC_RANSAC);
+    seg.setEpsAngle (0);
+    seg.setDistanceThreshold (0.01); //1cm
+    //seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
+    //seg.setAxis(Eigen::Vector3f(0.0,1.0,0.0));
+    //seg.setEpsAngle (pcl::deg2rad (10.0));
+
+
+    //seg.setInputCloud (cloud_filtered2->makeShared());
+    //seg.segment (*inliers, *coefficients);
+    pcl::PCDWriter writer ;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZRGB> ()) ;
+    pcl::visualization::CloudViewer viewer("PCL OpenNI Viewer");
+    int i=0, nr_points = (int) cloud_filtered->points.size ();
+    while (cloud_filtered->points.size () > 0.5 * nr_points){
+        // Segment the largest planar component from the remaining cloud
+        seg.setInputCloud (cloud_filtered->makeShared());
+        seg.segment (*inliers, *coefficients);
+        cout << "inliers->indices.size: " <<inliers->indices.size() << endl ;
+        if (inliers->indices.size () < 1000){
+            std::cout << "Could not estimate a planar model for the given dataset." << std::endl;
+            break;
+        }
+
+        viewer.showCloud(cloud_filtered);
+        // Extract the planar inliers from the input cloud
+        pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+        extract.setInputCloud (cloud_filtered);
+        extract.setIndices (inliers);
+        extract.setNegative (false);
+
+        // Get the points associated with the planar surface
+        extract.filter (*cloud_plane);
+        std::cout << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
+
+        // Remove the planar inliers, extract the rest
+        extract.setNegative (true);
+        extract.filter (*cloud_f);
+        *cloud_filtered = *cloud_f;
+    }
+
+    /*
     pcl::ExtractIndices<pcl::PointXYZRGB> extract;
     extract.setInputCloud (cloud_filtered2);
     // Step 4.1: Extract the points that lie in the ground plane
@@ -293,17 +430,12 @@ void pcl_segmentation( cloud_type::ConstPtr cloud ){
         PCL_ERROR ("Could not estimate a planar model for the given dataset."); 
         //exit(0); 
     } 
-    // PAINT SURFACE
-    //
-    //for (unsigned int i = 0; i < inliers->indices.size(); i++){ 
-    //    int idx = inliers->indices[i]; 
-    //    cloud_filtered2->points[idx].r = 255; 
-    //    cloud_filtered2->points[idx].b = 0; 
-    //}
+    */
+
         
     // Step 5: EuclideanCluster Extract the moving objects
     pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
-    tree->setInputCloud (cloud_filtered2);
+    tree->setInputCloud (cloud_filtered);
 
     std::vector<pcl::PointIndices> cluster_indices ;
     pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec ;
@@ -311,14 +443,29 @@ void pcl_segmentation( cloud_type::ConstPtr cloud ){
     ec.setMinClusterSize (1000) ;
     ec.setMaxClusterSize (25000) ;
     ec.setSearchMethod (tree) ;
-    ec.setInputCloud (cloud_filtered2) ;
+    ec.setInputCloud (cloud_filtered) ;
     ec.extract (cluster_indices) ;
-    //ros::Time now = ros::Time::now() ;
-    //ros::Duration time = now - last ;
-    //cout << "Time : " << time.nsec << endl;
 
     cout << "The size of cluster_indices : " << cluster_indices.size() << endl;
+    int j = 0 ;
+    for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it){
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
+        for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
+            cloud_cluster->points.push_back (cloud_filtered->points[*pit]);
+        cloud_cluster->width = cloud_cluster->points.size ();
+        cloud_cluster->height = 1;
+        cloud_cluster->is_dense = true;
 
+        std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
+        if(image_extract_cluster(cloud_cluster)) {
+            std::stringstream ss;
+            ss << "ResultCloud_" << j << ".pcd";
+            writer.write<pcl::PointXYZRGB> (ss.str (), *cloud_cluster, false);
+            j++;
+        }
+
+    }
+    /*
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
     double minX(0.0), minY(0.0), minZ(0.0), maxX(0.0), maxY(0.0), maxZ(0.0) ;
     point_type cluster_point ;
@@ -347,10 +494,10 @@ void pcl_segmentation( cloud_type::ConstPtr cloud ){
             }
             num++ ;
             //object_cloud += *cloud_cluster ;
-            /*
-            if(!cloud_viewer.wasStopped()){
-                cloud_viewer.showCloud(cloud_cluster);
-            }*/
+            
+            //if(!cloud_viewer.wasStopped()){
+            //    cloud_viewer.showCloud(cloud_cluster);
+            //}
             //cloud_viewer.showCloud( object_cloud );
             //current_coordinate.clear();
             //std::cout << "true" << std::endl ;
@@ -371,12 +518,14 @@ void pcl_segmentation( cloud_type::ConstPtr cloud ){
     }
         
     cout << "num = " << num << endl ;
+    */
     //ros::Duration next = ros::Time::now() - now ;
     //cout << "next = " << next.nsec << endl ;
     //viewer.showCloud(cloud_cluster); 
     //cloud_viewer->showCloud(cloud_plane) ;
 
 }
+
 
 bool image_extract_cluster( cloud_type::ConstPtr cloud ){
     double minX(100.0), minY(100.0), minZ(100.0), maxX(0.0), maxY(0.0), maxZ(0.0), averageZ(0.0) ;
@@ -411,16 +560,17 @@ bool image_extract_cluster( cloud_type::ConstPtr cloud ){
     }
 
     double area = ( maxX- minX ) * (maxY - minY) ;
-    cout << "area= " << area << endl ;
+    //cout << "area= " << area << endl ;
     double density = area / (double) count ;
-    //cout << "density: " << density << endl ;
+    cout << "density: " << density << endl ;
+    cout << "count: " << count << endl ;
     //cout << "The size of PointCloud: " << cloud->points.size() << endl ;
     //std::cout << "size = "  << current_coordinate.size << std::endl ;
     /*
     if(count > 1500)
         std::cout << "count = " << count << std::endl ;
     */
-    if(density > 0.4 && density < 100 ){
+    if(density > 0 && density < 100 && count >2000 ){
         cout << "density: " << density << endl ;
         cout << "The size of PointCloud: " << cloud->points.size() << endl ;
 
