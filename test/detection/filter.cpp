@@ -174,7 +174,7 @@ void image_diff(const cv::Mat &lastImage, const cv::Mat &currentImage, cloud_typ
                 Eigen::Vector3f v2 ;
 
                 if( imageDiff > threshod ){
-                        //currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
+                    //currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
                     frame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
                     lastDepthValue = isnan( lastCloud->at( cols,rows).z) ? 20 : lastCloud->at(cols,rows).z ;
                     depthValue = isnan( currentCloud->at(warpPt.x, warpPt.y).z) ? 20 : currentCloud->at(warpPt.x, warpPt.y).z ;
@@ -465,64 +465,6 @@ void pcl_segmentation( cloud_type::ConstPtr cloud ){
         }
 
     }
-    /*
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
-    double minX(0.0), minY(0.0), minZ(0.0), maxX(0.0), maxY(0.0), maxZ(0.0) ;
-    point_type cluster_point ;
-    int num = 0 ;
-
-
-    for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it){
-        for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++){
-            cluster_point = cloud_filtered2->points[*pit] ;
-            cloud_cluster->points.push_back (cluster_point); 
-        }
-        cloud_cluster->width = cloud_cluster->points.size ();
-        cloud_cluster->height = 1;
-        //cloud_cluster->width = 640 ;
-        //cloud_cluster->height= 480 ;
-        //cloud_cluster->resize(cloud_cluster->width * cloud_cluster->height) ;
-        cloud_cluster->is_dense = true;
-        unsigned int filesSaved = 0 ;
-        if(image_extract_cluster(cloud_cluster)) {
-            stringstream stream;
-            stream << "ResultCloud" << filesSaved << ".pcd";
-            string filename = stream.str();
-            if (pcl::io::savePCDFile(filename, *cloud_cluster, true) == 0){
-                filesSaved++;
-                cout << "Saved " << filename << "." << endl;
-            }
-            num++ ;
-            //object_cloud += *cloud_cluster ;
-            
-            //if(!cloud_viewer.wasStopped()){
-            //    cloud_viewer.showCloud(cloud_cluster);
-            //}
-            //cloud_viewer.showCloud( object_cloud );
-            //current_coordinate.clear();
-            //std::cout << "true" << std::endl ;
-            //break ;
-        }else{
-            //cloud_cluster->clear() ;
-            continue ;
-        }
-            
-        //hull.setInputCloud(cloud_cluster) ;
-        //hull.setAlpha(0.1);
-        //hull.setDimension( 3 );
-        //hull.reconstruct( *concaveHull, polygons );
-        //for(int i = 0; i < polygons.size(); i++)
-        //std::cout << polygons[i] << std::endl;
-            
-        std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
-    }
-        
-    cout << "num = " << num << endl ;
-    */
-    //ros::Duration next = ros::Time::now() - now ;
-    //cout << "next = " << next.nsec << endl ;
-    //viewer.showCloud(cloud_cluster); 
-    //cloud_viewer->showCloud(cloud_plane) ;
 
 }
 
@@ -549,6 +491,7 @@ bool image_extract_cluster( cloud_type::ConstPtr cloud ){
         averageZ += cloud->points[i].z ;
     }
     averageZ = averageZ / cloud->points.size() ;
+    cout << "before add,count = " << count << endl ;
     for (std::vector<Eigen::Vector3f>::const_iterator it = current_coordinate.begin(); it != current_coordinate.end(); ++it){
         //Eigen::Vector3f v = *it ;
         if( it->x()>minX && it->x()<maxX  &&  it->y()>minY && it->y()<maxY  &&  abs((it->z()) - averageZ )<0.2){
@@ -561,7 +504,7 @@ bool image_extract_cluster( cloud_type::ConstPtr cloud ){
 
     double area = ( maxX- minX ) * (maxY - minY) ;
     //cout << "area= " << area << endl ;
-    double density = area / (double) count ;
+    double density = (double) count / area ;
     cout << "density: " << density << endl ;
     cout << "count: " << count << endl ;
     //cout << "The size of PointCloud: " << cloud->points.size() << endl ;
@@ -570,7 +513,7 @@ bool image_extract_cluster( cloud_type::ConstPtr cloud ){
     if(count > 1500)
         std::cout << "count = " << count << std::endl ;
     */
-    if(density > 0 && density < 100 && count >2000 ){
+    if(density > 3000  && count >2000 ){
         cout << "density: " << density << endl ;
         cout << "The size of PointCloud: " << cloud->points.size() << endl ;
 
