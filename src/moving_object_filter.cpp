@@ -631,6 +631,90 @@ bool MovingObjectFilter::image_extract_cluster( cloud_type::ConstPtr cloud, cons
     */
 
 }
+cv::Mat MovingObjectFilter::bgrFromCloud(const pcl::PointCloud<pcl::PointXYZRGBA> & cloud, bool bgrOrder)
+{
+    cv::Mat frameBGR = cv::Mat(cloud.height,cloud.width,CV_8UC3);
+
+    for(unsigned int h = 0; h < cloud.height; h++)
+    {
+        for(unsigned int w = 0; w < cloud.width; w++)
+        {
+            if(bgrOrder)
+            {
+                frameBGR.at<cv::Vec3b>(h,w)[0] = cloud.at(h*cloud.width + w).b;
+                frameBGR.at<cv::Vec3b>(h,w)[1] = cloud.at(h*cloud.width + w).g;
+                frameBGR.at<cv::Vec3b>(h,w)[2] = cloud.at(h*cloud.width + w).r;
+            }
+            else
+            {
+                frameBGR.at<cv::Vec3b>(h,w)[0] = cloud.at(h*cloud.width + w).r;
+                frameBGR.at<cv::Vec3b>(h,w)[1] = cloud.at(h*cloud.width + w).g;
+                frameBGR.at<cv::Vec3b>(h,w)[2] = cloud.at(h*cloud.width + w).b;
+            }
+        }
+    }
+    return frameBGR;
+}
+
+// return float image in meter
+cv::Mat MovingObjectFilter::depthFromCloud(
+        const pcl::PointCloud<pcl::PointXYZRGBA> & cloud,
+        float & fx,
+        float & fy,
+        bool depth16U)
+{
+    cv::Mat frameDepth = cv::Mat(cloud.height,cloud.width,depth16U?CV_16UC1:CV_32FC1);
+    fx = 0.0f; // needed to reconstruct the cloud
+    fy = 0.0f; // needed to reconstruct the cloud
+    for(unsigned int h = 0; h < cloud.height; h++)
+    {
+        for(unsigned int w = 0; w < cloud.width; w++)
+        {
+            float depth = cloud.at(h*cloud.width + w).z;
+            if(depth16U)
+            {
+                depth *= 1000.0f;
+                unsigned short depthMM = 0;
+                if(depth <= (float)USHRT_MAX)
+                {
+                    depthMM = (unsigned short)depth;
+                }
+                frameDepth.at<unsigned short>(h,w) = depthMM;
+            }
+            else
+            {
+                frameDepth.at<float>(h,w) = depth;
+            }
+
+            // update constants
+            if(fx == 0.0f &&
+               uIsFinite(cloud.at(h*cloud.width + w).x) &&
+               uIsFinite(depth) &&
+               w != cloud.width/2 &&
+               depth > 0)
+            {
+                fx = cloud.at(h*cloud.width + w).x / ((float(w) - float(cloud.width)/2.0f) * depth);
+                if(depth16U)
+                {
+                    fx*=1000.0f;
+                }
+            }
+            if(fy == 0.0f &&
+               uIsFinite(cloud.at(h*cloud.width + w).y) &&
+               uIsFinite(depth) &&
+               h != cloud.height/2 &&
+               depth > 0)
+            {
+                fy = cloud.at(h*cloud.width + w).y / ((float(h) - float(cloud.height)/2.0f) * depth);
+                if(depth16U)
+                {
+                    fy*=1000.0f;
+                }
+            }
+        }
+    }
+    return frameDepth;
+}
 
 /*
 
