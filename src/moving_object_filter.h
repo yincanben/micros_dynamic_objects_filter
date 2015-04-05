@@ -88,7 +88,8 @@ class MovingObjectFilter{
 
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
         cloud_type lastCloud ;
-        pcl::visualization::CloudViewer cloud_viewer ;
+        //pcl::visualization::CloudViewer cloud_viewer ;
+        pcl::visualization::CloudViewer result_viewer ;
 
         double threshod ;
 
@@ -132,8 +133,8 @@ class MovingObjectFilter{
 
         //pcl::PointCloud<pcl::PointXYZRGB>::Ptr last_cloud ;
 
-        cloud_type object_cloud ; //save the moving object
-        cloud_type filter_cloud ; //save the rest cloud(i.e don't include moving object)
+        //cloud_type object_cloud ; //save the moving object
+        //cloud_type filter_cloud ; //save the rest cloud(i.e don't include moving object)
 
         int frame_count  ;//set the interval of frame_count
         std::vector<Eigen::Vector3f> previous_coordinate ;

@@ -91,7 +91,7 @@ class DynamicObjectFilter: public MovingObjectFilter{
                     float fx = model.fx() ;
                     float fy = model.fy() ;
 
-                    cv_bridge::CvImageConstPtr ptrImage = cv_bridge::toCvShare(image, "mono8");
+                    cv_bridge::CvImageConstPtr ptrImage = cv_bridge::toCvShare(image, "bgr8");//mono8
                     cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depth);
                     this->processData( ptrImage->image, ptrDepth->image, cx, cy, fx, fy);
 

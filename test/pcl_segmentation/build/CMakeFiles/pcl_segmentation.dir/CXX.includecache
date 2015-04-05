@@ -35,6 +35,8 @@ pcl/segmentation/extract_clusters.h
 -
 pcl/visualization/cloud_viewer.h
 -
+pcl/common/impl/angles.hpp
+-
 opencv2/opencv.hpp
 -
 opencv2/imgproc/imgproc.hpp
@@ -1796,6 +1798,12 @@ Eigen/Dense
 Eigen/Eigenvalues
 -
 pcl/common/impl/eigen.hpp
+-
+
+/usr/local/include/pcl-1.7/pcl/common/impl/angles.hpp
+cmath
+-
+pcl/pcl_macros.h
 -
 
 /usr/local/include/pcl-1.7/pcl/common/impl/centroid.hpp

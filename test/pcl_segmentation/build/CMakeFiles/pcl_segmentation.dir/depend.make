@@ -323,6 +323,7 @@ CMakeFiles/pcl_segmentation.dir/src/pcl_segmentation.cpp.o: /usr/local/include/p
 CMakeFiles/pcl_segmentation.dir/src/pcl_segmentation.cpp.o: /usr/local/include/pcl-1.7/pcl/common/concatenate.h
 CMakeFiles/pcl_segmentation.dir/src/pcl_segmentation.cpp.o: /usr/local/include/pcl-1.7/pcl/common/distances.h
 CMakeFiles/pcl_segmentation.dir/src/pcl_segmentation.cpp.o: /usr/local/include/pcl-1.7/pcl/common/eigen.h
+CMakeFiles/pcl_segmentation.dir/src/pcl_segmentation.cpp.o: /usr/local/include/pcl-1.7/pcl/common/impl/angles.hpp
 CMakeFiles/pcl_segmentation.dir/src/pcl_segmentation.cpp.o: /usr/local/include/pcl-1.7/pcl/common/impl/centroid.hpp
 CMakeFiles/pcl_segmentation.dir/src/pcl_segmentation.cpp.o: /usr/local/include/pcl-1.7/pcl/common/impl/common.hpp
 CMakeFiles/pcl_segmentation.dir/src/pcl_segmentation.cpp.o: /usr/local/include/pcl-1.7/pcl/common/impl/eigen.hpp
