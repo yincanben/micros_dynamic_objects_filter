@@ -122,8 +122,8 @@ class MovingObjectFilter{
                         int decimation);
 
         void image_separate( cloud_type::ConstPtr cloud ) ;
-        void pcl_segmentation( cloud_type::ConstPtr cloud ) ;
-        bool image_extract_cluster( cloud_type::ConstPtr cloud ) ;
+        void pcl_segmentation( cloud_type::ConstPtr cloud , const cv::Mat &image , float cx, float cy, float fx, float fy ) ;
+        bool image_extract_cluster( cloud_type::ConstPtr cloud,const cv::Mat &image , float cx, float cy, float fx, float fy ) ;
         void transform_coordinate(cloud_type::ConstPtr cloud) ;
         cv::Mat last_image;
         cv::Mat binary_image ;
