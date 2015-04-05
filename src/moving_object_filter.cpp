@@ -560,7 +560,7 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv
         //std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
     }
     if(!result_viewer.wasStopped()){
-        result_viewer.showCloud(dynamic_object);
+        result_viewer.showCloud(static_object);
     }
 
 
@@ -600,7 +600,7 @@ bool MovingObjectFilter::image_extract_cluster( cloud_type::ConstPtr cloud, cons
     for(int row = 0 ; row < currentFrame.rows; row++){
         for(int col= 0; col < currentFrame.cols; col++){
             if( currentFrame.at<unsigned char>(row,col) == 255){
-                if(row > minX && row<maxX && col>minY && col<maxY){
+                if(row > minY && row<maxY && col>minX && col<maxX){
                     result.at<unsigned char>(row,col) = 255;
                     count ++ ;
                 }
