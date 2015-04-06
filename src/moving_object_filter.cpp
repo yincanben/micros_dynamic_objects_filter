@@ -22,7 +22,6 @@
                                        float cx,float cy,
                                        float fx,float fy){
 
-     //ROS_INFO("*******");
      cv::Mat imageMono ;
      //convert to grayscale
 
@@ -48,9 +47,9 @@
      cloud = this->cloudFromDepthRGB( image, depth, cx, cy, fx, fy, 1.0 ) ;
      this->image_diff( imageMono, cloud ) ;
     
-     this->pcl_segmentation(cloud, imageMono, cx, cy, fx, fy) ;
-     previous_coordinate.clear() ;
-     current_coordinate.clear() ;
+     this->pcl_segmentation(cloud, image, cx, cy, fx, fy) ;
+     //previous_coordinate.clear() ;
+     //current_coordinate.clear() ;
      
      sensor_msgs::PointCloud2::Ptr cloudMsg(new sensor_msgs::PointCloud2) ;
      pcl::toROSMsg(*cloud, *cloudMsg) ;
@@ -227,8 +226,8 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
                         if( lastDepthValue - depthValue > 0.2 && lastDepthValue<20 ){
                             currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
                             current.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
-                            v1 << cloud->at(warpPt.x, warpPt.y).x , cloud->at(warpPt.x, warpPt.y).y ,cloud->at(warpPt.x, warpPt.y).z ;
-                            current_coordinate.push_back(v1) ;
+                            //v1 << cloud->at(warpPt.x, warpPt.y).x , cloud->at(warpPt.x, warpPt.y).y ,cloud->at(warpPt.x, warpPt.y).z ;
+                            //current_coordinate.push_back(v1) ;
 
                         }else if( depthValue -lastDepthValue > 0.2 && depthValue <20 ){
 
@@ -429,7 +428,7 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZRGB>);
 
     // Step 1: Filter out NaNs from data
-    ros::Time last = ros::Time::now() ;
+    //ros::Time last = ros::Time::now() ;
     /*
     pcl::PassThrough<pcl::PointXYZRGB> pass ;
     pass.setInputCloud (cloud);
@@ -465,6 +464,8 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv
     downSampler.setInputCloud (cloud);
     downSampler.setLeafSize (0.01f, 0.01f, 0.01f);
     downSampler.filter (*cloud_filtered);
+
+
 
 
     // Step 4: Remove the ground plane using RANSAC
@@ -523,8 +524,8 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv
     ec.setSearchMethod (tree) ;
     ec.setInputCloud (cloud_filtered) ;
     ec.extract (cluster_indices) ;
-    ros::Time now = ros::Time::now() ;
-    ros::Duration time = now - last ;
+    //ros::Time now = ros::Time::now() ;
+    //ros::Duration time = now - last ;
     //cout << "Time : " << time.nsec << endl;
 
     cout << "The size of cluster_indices : " << cluster_indices.size() << endl;
@@ -562,21 +563,33 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv
     if(!result_viewer.wasStopped()){
         result_viewer.showCloud(static_object);
     }
+    cv::Mat resultImage;
+    resultImage = this->bgrFromCloud( *static_object,false) ;
+    cv::namedWindow("resultImage");
+    cv::imshow("resultImage", resultImage);
+    cv::waitKey(1);
 
-
-    ros::Duration next = ros::Time::now() - now ;
+    //ros::Duration next = ros::Time::now() - now ;
     //cout << "next = " << next.nsec << endl ;
     //viewer.showCloud(cloud_cluster);
     //cloud_viewer->showCloud(cloud_plane) ;
 }
 bool MovingObjectFilter::image_extract_cluster( cloud_type::ConstPtr cloud, const cv::Mat &image ,  float cx, float cy, float fx, float fy){
     //pcl::PointCloud<pcl::PointXYZ>  pt ;
+    cv::Mat imageMono ;
+    //convert to grayscale
+
+    if(image.channels() > 1){
+       cv::cvtColor(image, imageMono, cv::COLOR_BGR2GRAY) ;
+    }else{
+       imageMono = image ;
+    }
     double minX(1000.0), minY(1000.0), minZ(1000.0), maxX(0.0), maxY(0.0), maxZ(0.0), averageZ(0.0) ;
     cv::Mat cluster( 480,640, CV_8UC1, cv::Scalar(0) );
     float x0 = 0.0 , y0 = 0.0 , z = 0.0 ;
     int x = 0 , y = 0 ;
     int count = 0 ;
-    cv::Mat result = image ;
+    cv::Mat result = imageMono ;
     for( int i = 0 ; i < cloud->points.size(); i++){
         z = cloud->points[i].z ;
         x0 = (cloud->points[i].x * fx)/z + cx ;
@@ -631,7 +644,7 @@ bool MovingObjectFilter::image_extract_cluster( cloud_type::ConstPtr cloud, cons
     */
 
 }
-cv::Mat MovingObjectFilter::bgrFromCloud(const pcl::PointCloud<pcl::PointXYZRGBA> & cloud, bool bgrOrder)
+cv::Mat MovingObjectFilter::bgrFromCloud(const pcl::PointCloud<pcl::PointXYZRGB> & cloud, bool bgrOrder)
 {
     cv::Mat frameBGR = cv::Mat(cloud.height,cloud.width,CV_8UC3);
 
@@ -658,7 +671,7 @@ cv::Mat MovingObjectFilter::bgrFromCloud(const pcl::PointCloud<pcl::PointXYZRGBA
 
 // return float image in meter
 cv::Mat MovingObjectFilter::depthFromCloud(
-        const pcl::PointCloud<pcl::PointXYZRGBA> & cloud,
+        const pcl::PointCloud<pcl::PointXYZRGB> & cloud,
         float & fx,
         float & fy,
         bool depth16U)

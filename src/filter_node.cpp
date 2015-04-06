@@ -46,44 +46,46 @@ class DynamicObjectFilter: public MovingObjectFilter{
 
             image_transport::TransportHints hintsRgb("raw", ros::TransportHints(), rgb_pnh) ;
             image_transport::TransportHints hintsDepth("raw", ros::TransportHints(), depth_pnh) ;
-        
+
+            // subscribe rgb image
             image_mono_sub_.subscribe(rgb_it, rgb_nh.resolveName("image"), 1, hintsRgb) ;
+            // subscribe depth image
             image_depth_sub_.subscribe(depth_it, depth_nh.resolveName("image"), 1, hintsDepth) ;
+            // subscribe camera_info
             info_sub_.subscribe(rgb_nh, "camera_info", 1) ;
 
             sync_ = new message_filters::Synchronizer<MySyncPolicy>(MySyncPolicy(queueSize), image_mono_sub_, image_depth_sub_, info_sub_) ;
             sync_->registerCallback(boost::bind(&DynamicObjectFilter::callback, this, _1, _2, _3)) ;
-            //ROS_INFO("Test") ;
-            //pnh.param("frame_id", frameId_, frameId_);
         }
         ~DynamicObjectFilter(){
             delete sync_ ;
         }
 
-        void callback( const sensor_msgs::ImageConstPtr& image, 
+        void callback( const sensor_msgs::ImageConstPtr& image,
                     const sensor_msgs::ImageConstPtr& depth,
                     const sensor_msgs::CameraInfoConstPtr& cameraInfo){
-                if(!(image->encoding.compare(sensor_msgs::image_encodings::MONO8) ==0 ||
-                     image->encoding.compare(sensor_msgs::image_encodings::MONO16) ==0 ||
-                     image->encoding.compare(sensor_msgs::image_encodings::BGR8) == 0 ||
-                     image->encoding.compare(sensor_msgs::image_encodings::RGB8) == 0) ||
-                     !(depth->encoding.compare(sensor_msgs::image_encodings::TYPE_16UC1)==0 ||
-                     depth->encoding.compare(sensor_msgs::image_encodings::TYPE_32FC1)==0)){
-                            ROS_ERROR("Input type must be image=mono8,mono16,rgb8,bgr8 (mono8 recommended) and image_depth=16UC1");
+            //check the encoding of rgb and depth image
+            if(!(image->encoding.compare(sensor_msgs::image_encodings::MONO8) ==0 ||
+                 image->encoding.compare(sensor_msgs::image_encodings::MONO16) ==0 ||
+                 image->encoding.compare(sensor_msgs::image_encodings::BGR8) == 0 ||
+                 image->encoding.compare(sensor_msgs::image_encodings::RGB8) == 0) ||
+                 !(depth->encoding.compare(sensor_msgs::image_encodings::TYPE_16UC1)==0 ||
+                 depth->encoding.compare(sensor_msgs::image_encodings::TYPE_32FC1)==0)){
+                    ROS_ERROR("Input type must be image=mono8,mono16,rgb8,bgr8 (mono8 recommended) and image_depth=16UC1");
                             return;
-                }else if(depth->encoding.compare(sensor_msgs::image_encodings::TYPE_32FC1)==0){
-                            static bool warned = false;
+            }else if(depth->encoding.compare(sensor_msgs::image_encodings::TYPE_32FC1)==0){
+                static bool warned = false;
                 if(!warned){
 					ROS_WARN("Input depth type is 32FC1, please use type 16UC1 for depth. The depth images "
 							 "will be processed anyway but with a conversion. This warning is only be printed once...") ;
 					warned = true ;
-				}//for if
-			}//for else
-            if(rate_ < 30){
+                }// for if
+            }// for else
+            if(rate_ < 10){
                 rate_ ++ ;
-                //cout << "rate_ :" << rate_ << endl ;
             }else{
                 if( image->data.size() && depth->data.size() && cameraInfo->K[4] != 0 ){
+                    // obtain the camera's parameters
                     image_geometry::PinholeCameraModel model ;
                     model.fromCameraInfo(*cameraInfo) ;
                     float cx = model.cx() ;
@@ -91,12 +93,11 @@ class DynamicObjectFilter: public MovingObjectFilter{
                     float fx = model.fx() ;
                     float fy = model.fy() ;
 
-                    cv_bridge::CvImageConstPtr ptrImage = cv_bridge::toCvShare(image, "bgr8");//mono8
+                    // convert the ros message to Mat in OpenCV
+                    cv_bridge::CvImageConstPtr ptrImage = cv_bridge::toCvShare(image, "bgr8");  //mono8
                     cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depth);
+                    // process the data
                     this->processData( ptrImage->image, ptrDepth->image, cx, cy, fx, fy);
-
-
-                    //ROS_INFO("image depth CameraInfo");
                 }
                 rate_ = 0 ;
             }

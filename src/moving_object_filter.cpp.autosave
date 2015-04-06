@@ -8,30 +8,20 @@
  #include "umath.h"
  #include "optical_flow.h"
  
- MovingObjectFilter::MovingObjectFilter( int argc, char**argv ):cloud_viewer("Moving Object Viewer")
- {
-    /*
-    ROS_INFO("constructor");
-    featureDetector_ = cv::FeatureDetector::create("ORB") ;//
-    descriptorExtractor_ = cv::DescriptorExtractor::create("ORB") ;//
-    descriptorMatcher_ = cv::DescriptorMatcher::create("BruteForce") ;
-    if(featureDetector_.empty() || descriptorExtractor_.empty() || descriptorMatcher_.empty()){
-        ROS_ERROR("Error creating detector, extractor or matcher.\n");
-    }*/
+ MovingObjectFilter::MovingObjectFilter( int argc, char**argv ):result_viewer("Result")
+ {//cloud_viewer("Moving Object Viewer"),
+
     ros::NodeHandle nh ;
     rgbPub_ = nh.advertise<sensor_msgs::Image>( "rgb" , 10 ) ;
     depthPub_ = nh.advertise<sensor_msgs::Image>( "depth", 10 ) ;
     cloudPub_ = nh.advertise<sensor_msgs::PointCloud2>("pointcloud2",10) ;
 
-    //std::cout << "constructor" << std::endl ;
-    //previous_frame.create(640,480,)
 }
 
  void MovingObjectFilter::processData( const cv::Mat & image, const cv::Mat &depth ,
                                        float cx,float cy,
                                        float fx,float fy){
 
-     //ROS_INFO("*******");
      cv::Mat imageMono ;
      //convert to grayscale
 
@@ -57,9 +47,9 @@
      cloud = this->cloudFromDepthRGB( image, depth, cx, cy, fx, fy, 1.0 ) ;
      this->image_diff( imageMono, cloud ) ;
     
-     this->pcl_segmentation(cloud) ;
-     previous_coordinate.clear() ;
-     current_coordinate.clear() ;
+     this->pcl_segmentation(cloud, image, cx, cy, fx, fy) ;
+     //previous_coordinate.clear() ;
+     //current_coordinate.clear() ;
      
      sensor_msgs::PointCloud2::Ptr cloudMsg(new sensor_msgs::PointCloud2) ;
      pcl::toROSMsg(*cloud, *cloudMsg) ;
@@ -191,9 +181,9 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
         lastFrame = last_frame ;
         currentFrame = current_frame ;
         threshod = 40 ;
-        cv::namedWindow("lastFrame") ;
+        //cv::namedWindow("lastFrame") ;
         cv::namedWindow("currentFrame") ;
-        cv::namedWindow("diffFrame") ;
+        //cv::namedWindow("diffFrame") ;
 
 
 
@@ -236,15 +226,15 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
                         if( lastDepthValue - depthValue > 0.2 && lastDepthValue<20 ){
                             currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
                             current.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
-                            v1 <<cloud->at(warpPt.x, warpPt.y).x , cloud->at(warpPt.x, warpPt.y).y ,cloud->at(warpPt.x, warpPt.y).z ;
-                            current_coordinate.push_back(v1) ;
+                            //v1 << cloud->at(warpPt.x, warpPt.y).x , cloud->at(warpPt.x, warpPt.y).y ,cloud->at(warpPt.x, warpPt.y).z ;
+                            //current_coordinate.push_back(v1) ;
 
                         }else if( depthValue -lastDepthValue > 0.2 && depthValue <20 ){
 
                             lastFrame.at<unsigned char>(rows, cols) = 255 ;
                             last.at<unsigned char>(rows, cols) = 255 ;
-                            v2 << lastCloud.at( cols,rows).x , lastCloud.at( cols,rows).y , lastCloud.at( cols,rows).z ;
-                            previous_coordinate.push_back(v2) ;;
+                            //v2 << lastCloud.at( cols,rows).x , lastCloud.at( cols,rows).y , lastCloud.at( cols,rows).z ;
+                            //previous_coordinate.push_back(v2) ;
 
                         }else{
                             continue ;
@@ -259,12 +249,12 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
             }
         }
 
-        cv::imshow("lastFrame",last);
-        cv::waitKey(5);
+        //cv::imshow("lastFrame",last);
+        //cv::waitKey(5);
         cv::imshow("currentFrame",current) ;
         cv::waitKey(5);
-        cv::imshow("diffFrame", diffFrame) ;
-        cv::waitKey(5);
+        //cv::imshow("diffFrame", diffFrame) ;
+        //cv::waitKey(5);
 
         if(cv::waitKey(1) > 0){
             exit(0);
@@ -432,13 +422,13 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr MovingObjectFilter::cloudFromDepthRGB(
         }
         return cloud;
 }
-void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud ){
+void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv::Mat &image , float cx, float cy, float fx, float fy ){
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZRGB>);
 
     // Step 1: Filter out NaNs from data
-    ros::Time last = ros::Time::now() ;
+    //ros::Time last = ros::Time::now() ;
     /*
     pcl::PassThrough<pcl::PointXYZRGB> pass ;
     pass.setInputCloud (cloud);
@@ -476,25 +466,28 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud ){
     downSampler.filter (*cloud_filtered);
 
 
+
+
     // Step 4: Remove the ground plane using RANSAC
     pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
     pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
     pcl::SACSegmentation<pcl::PointXYZRGB> seg;
     seg.setOptimizeCoefficients (true); // Optional
-    /*
+
     seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
     seg.setAxis(Eigen::Vector3f(0.0,1.0,0.0));
     seg.setEpsAngle (pcl::deg2rad (10.0));
     seg.setMethodType (pcl::SAC_RANSAC);
     seg.setDistanceThreshold (0.01); //1cm
-    */
+    /*
     seg.setMethodType (pcl::SACMODEL_NORMAL_PARALLEL_PLANE) ;
     seg.setAxis(Eigen::Vector3f(0,0,1));
     seg.setMethodType (pcl::SAC_RANSAC);
     seg.setEpsAngle (0);
     seg.setDistanceThreshold (0.01); //1cm
-
+    */
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZRGB> ()) ;
+    pcl::PointCloud<pcl::PointXYZRGB> plane  ;
     pcl::ExtractIndices<pcl::PointXYZRGB> extract;
     int  nr_points = (int) cloud_filtered->points.size ();
     while(cloud_filtered->points.size () > 0.5 * nr_points){
@@ -510,6 +503,7 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud ){
         extract.setIndices (inliers);
         extract.setNegative (false);
         extract.filter (*cloud_plane);
+        plane += *cloud_plane ;
 
         // Step 4.2: Extract the points that are objects(i.e. are not in the ground plane)
         extract.setNegative (true);
@@ -517,17 +511,6 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud ){
         *cloud_filtered = *cloud_f;
     }
 
-    //if (inliers->indices.size () == 0) {
-     //   PCL_ERROR ("Could not estimate a planar model for the given dataset.");
-        //exit(0);
-    //}
-    // PAINT SURFACE
-    //
-    //for (unsigned int i = 0; i < inliers->indices.size(); i++){
-    //    int idx = inliers->indices[i];
-    //    cloud_filtered2->points[idx].r = 255;
-    //    cloud_filtered2->points[idx].b = 0;
-    //}
 
     // Step 5: EuclideanCluster Extract the moving objects
     pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
@@ -541,18 +524,20 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud ){
     ec.setSearchMethod (tree) ;
     ec.setInputCloud (cloud_filtered) ;
     ec.extract (cluster_indices) ;
-    ros::Time now = ros::Time::now() ;
-    ros::Duration time = now - last ;
+    //ros::Time now = ros::Time::now() ;
+    //ros::Duration time = now - last ;
     //cout << "Time : " << time.nsec << endl;
 
     cout << "The size of cluster_indices : " << cluster_indices.size() << endl;
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr dynamic_object (new pcl::PointCloud<pcl::PointXYZRGB>);
     //double minX(0.0), minY(0.0), minZ(0.0), maxX(0.0), maxY(0.0), maxZ(0.0) ;
     //point_type cluster_point ;
     //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
     int num = 0 ;
-
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr static_object(new pcl::PointCloud<pcl::PointXYZRGB>)  ;
+    *static_object = plane ;
     for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it){
         for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
             cloud_cluster->push_back( cloud_filtered->points[*pit]) ;
@@ -560,29 +545,195 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud ){
         cloud_cluster->width = cloud_cluster->points.size () ;
         cloud_cluster->height = 1 ;
         cloud_cluster->is_dense = true ;
-
-        if(image_extract_cluster(cloud_cluster)) {
-            //object_cloud += *cloud_cluster ;
+        if(image_extract_cluster(cloud_cluster,image, cx, cy, fx, fy)) {
+            *dynamic_object += *cloud_cluster ;
+            /*
             if(!cloud_viewer.wasStopped()){
                 cloud_viewer.showCloud(cloud_cluster);
                 num++ ;
                 cout << "num = "  << num << endl;
-            }
+            }*/
         }else{
-            continue ;
+            *static_object += *cloud_cluster ;
+            //continue ;
         }
+        cloud_cluster->clear();
         //std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
     }
+    if(!result_viewer.wasStopped()){
+        result_viewer.showCloud(static_object) ;
+    }
+    //cv::Mat resultImage;
+    //resultImage = this->bgrFromCloud( *static_object,false) ;
+    //cv::namedWindow("resultImage");
+    //cv::imshow("resultImage", resultImage);
+    //cv::waitKey(1);
 
-
-    ros::Duration next = ros::Time::now() - now ;
+    //ros::Duration next = ros::Time::now() - now ;
     //cout << "next = " << next.nsec << endl ;
     //viewer.showCloud(cloud_cluster);
     //cloud_viewer->showCloud(cloud_plane) ;
 }
+bool MovingObjectFilter::image_extract_cluster( cloud_type::ConstPtr cloud, const cv::Mat &image ,  float cx, float cy, float fx, float fy){
+    //pcl::PointCloud<pcl::PointXYZ>  pt ;
+    cv::Mat imageMono ;
+    //convert to grayscale
 
+    if(image.channels() > 1){
+       cv::cvtColor(image, imageMono, cv::COLOR_BGR2GRAY) ;
+    }else{
+       imageMono = image ;
+    }
+    double minX(1000.0), minY(1000.0), minZ(1000.0), maxX(0.0), maxY(0.0), maxZ(0.0), averageZ(0.0) ;
+    cv::Mat cluster( 480,640, CV_8UC1, cv::Scalar(0) );
+    float x0 = 0.0 , y0 = 0.0 , z = 0.0 ;
+    int x = 0 , y = 0 ;
+    int count = 0 ;
+    cv::Mat result = imageMono ;
+    for( int i = 0 ; i < cloud->points.size(); i++){
+        z = cloud->points[i].z ;
+        x0 = (cloud->points[i].x * fx)/z + cx ;
+        y0 = (cloud->points[i].y * fy)/z + cy ;
+        x = cvRound(x0) ;
+        y = cvRound(y0) ;
+        cluster.at<unsigned char>(y, x) = 255 ;
+        //result.at<unsigned char>(y,x) = 255;
 
+        if( x < minX )  minX = x ;
+        if( y < minY )  minY = y ;
+        //if( z < minZ )  minZ = z ;
 
+        if( x > maxX )  maxX = x ;
+        if( y > maxY )  maxY = y ;
+        //if( z > maxZ )  maxZ = z ;
+
+        //averageZ += z ;
+    }
+    //averageZ = averageZ / cloud->points.size()
+    for(int row = 0 ; row < currentFrame.rows; row++){
+        for(int col= 0; col < currentFrame.cols; col++){
+            if( currentFrame.at<unsigned char>(row,col) == 255){
+                if(row > minY && row<maxY && col>minX && col<maxX){
+                    result.at<unsigned char>(row,col) = 255;
+                    count ++ ;
+                }
+            }
+        }
+    }
+    cout << "count= " << count << endl ;
+    cv::namedWindow("cluster") ;
+    cv::imshow("cluster", cluster) ;
+    cv::waitKey(1) ;
+    
+    cv::namedWindow("")
+    
+    if(count > 3000){
+        
+        return true ;
+    }else{
+        return false ;
+    }
+
+    /*
+    count ++ ;
+    cout << "count= " << count << endl ;
+    std::stringstream ss;
+    ss << "Resultimage" << count << ".jpg";
+    cv::namedWindow("cluster") ;
+    cv::imshow("cluster", cluster) ;
+    imwrite( ss.str(),cluster );
+    cv::Mat new_cluster( 480,640, CV_8UC1, cv::Scalar(0) );
+    cluster = new_cluster ;
+    cv::waitKey(1) ;
+    */
+
+}
+cv::Mat MovingObjectFilter::bgrFromCloud(const pcl::PointCloud<pcl::PointXYZRGB> & cloud, bool bgrOrder)
+{
+    cv::Mat frameBGR = cv::Mat(cloud.height,cloud.width,CV_8UC3);
+
+    for(unsigned int h = 0; h < cloud.height; h++)
+    {
+        for(unsigned int w = 0; w < cloud.width; w++)
+        {
+            if(bgrOrder)
+            {
+                frameBGR.at<cv::Vec3b>(h,w)[0] = cloud.at(h*cloud.width + w).b;
+                frameBGR.at<cv::Vec3b>(h,w)[1] = cloud.at(h*cloud.width + w).g;
+                frameBGR.at<cv::Vec3b>(h,w)[2] = cloud.at(h*cloud.width + w).r;
+            }
+            else
+            {
+                frameBGR.at<cv::Vec3b>(h,w)[0] = cloud.at(h*cloud.width + w).r;
+                frameBGR.at<cv::Vec3b>(h,w)[1] = cloud.at(h*cloud.width + w).g;
+                frameBGR.at<cv::Vec3b>(h,w)[2] = cloud.at(h*cloud.width + w).b;
+            }
+        }
+    }
+    return frameBGR;
+}
+
+// return float image in meter
+cv::Mat MovingObjectFilter::depthFromCloud(
+        const pcl::PointCloud<pcl::PointXYZRGB> & cloud,
+        float & fx,
+        float & fy,
+        bool depth16U)
+{
+    cv::Mat frameDepth = cv::Mat(cloud.height,cloud.width,depth16U?CV_16UC1:CV_32FC1);
+    fx = 0.0f; // needed to reconstruct the cloud
+    fy = 0.0f; // needed to reconstruct the cloud
+    for(unsigned int h = 0; h < cloud.height; h++)
+    {
+        for(unsigned int w = 0; w < cloud.width; w++)
+        {
+            float depth = cloud.at(h*cloud.width + w).z;
+            if(depth16U)
+            {
+                depth *= 1000.0f;
+                unsigned short depthMM = 0;
+                if(depth <= (float)USHRT_MAX)
+                {
+                    depthMM = (unsigned short)depth;
+                }
+                frameDepth.at<unsigned short>(h,w) = depthMM;
+            }
+            else
+            {
+                frameDepth.at<float>(h,w) = depth;
+            }
+
+            // update constants
+            if(fx == 0.0f &&
+               uIsFinite(cloud.at(h*cloud.width + w).x) &&
+               uIsFinite(depth) &&
+               w != cloud.width/2 &&
+               depth > 0)
+            {
+                fx = cloud.at(h*cloud.width + w).x / ((float(w) - float(cloud.width)/2.0f) * depth);
+                if(depth16U)
+                {
+                    fx*=1000.0f;
+                }
+            }
+            if(fy == 0.0f &&
+               uIsFinite(cloud.at(h*cloud.width + w).y) &&
+               uIsFinite(depth) &&
+               h != cloud.height/2 &&
+               depth > 0)
+            {
+                fy = cloud.at(h*cloud.width + w).y / ((float(h) - float(cloud.height)/2.0f) * depth);
+                if(depth16U)
+                {
+                    fy*=1000.0f;
+                }
+            }
+        }
+    }
+    return frameDepth;
+}
+
+/*
 
 bool MovingObjectFilter::image_extract_cluster( cloud_type::ConstPtr cloud ){
     double minX(100.0), minY(100.0), minZ(100.0), maxX(0.0), maxY(0.0), maxZ(0.0), averageZ(0.0) ;
@@ -606,14 +757,15 @@ bool MovingObjectFilter::image_extract_cluster( cloud_type::ConstPtr cloud ){
         averageZ += cloud->points[i].z ;
     }
     averageZ = averageZ / cloud->points.size() ;//TODO
-    cout << "before add,count = " << count << endl ;
+    //cout << "before add,count = " << count << endl ;
     for (std::vector<Eigen::Vector3f>::const_iterator it = current_coordinate.begin(); it != current_coordinate.end(); ++it){
         //Eigen::Vector3f v = *it ;
         if( it->x()>minX && it->x()<maxX  &&  it->y()>minY && it->y()<maxY  &&  abs((it->z()) - averageZ )<0.2){
-            if(it->z()<minZ || it->z()>maxZ)
+            if(it->z()<minZ || it->z()>maxZ){
                 continue ;
-
-            count ++ ;
+            }else{
+                count ++ ;
+            }
         }
     }
 
@@ -624,48 +776,17 @@ bool MovingObjectFilter::image_extract_cluster( cloud_type::ConstPtr cloud ){
     cout << "count:" << count << endl ;
     //cout << "The size of PointCloud: " << cloud->points.size() << endl ;
     //std::cout << "size = "  << current_coordinate.size << std::endl ;
-    /*
+
     if(count > 1500)
         std::cout << "count = " << count << std::endl ;
-    */
+
     if(density > 3000 && count>3000 ){///TODO
         cout << "density = " << density << endl ;
         cout << "count = " << count << endl ;
-        count = 0 ;
         return true ;
     }else{
-        count = 0 ;
         return false ;
     }
-}
-/*
-cloud_type::ConstPtr MovingObjectFilter::get_filter_cloud(){
-    return object_cloud.makeShared() ;
-}
-
-void MovingObjectFilter::clear_object_cloud(){
-    object_cloud.clear();
-}
-
-
-void MovingObjectFilter::transform_coordinate(cloud_type::ConstPtr cloud){
-    double min_x = 10.0, min_y = 10.0 , min_z = 10.0, max_x = 0.0, max_y = 0.0 , max_z = 0.0 ;
-    deta_x = 0.0 ;
-    deta_y = 0.0 ;
-    for( int row=0 ; row<cloud->height; row++ ){
-        for(int col=0; col<cloud->width; col++){
-            const point_type& pt = cloud->at(col, row) ;
-            if(pt.x < min_x)    min_x = pt.x ;
-            if(pt.y < min_y)    min_y = pt.y ;
-            if(pt.z < min_z)    min_z = pt.z ;
-            if(pt.x > max_x)    max_x = pt.x ;
-            if(pt.y > max_y)    max_y = pt.y ;
-            if(pt.z > max_z)    max_z = pt.z ;
-        }
-    }
-    deta_x = max_x - min_x ;
-    deta_y = max_y - min_y ;
-    std::cout << "deta_x/640 = " << deta_x/640 << ";deta_y/480 = " << deta_y/480 << std::endl ;
 }
 */
 

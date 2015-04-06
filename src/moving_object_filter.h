@@ -54,7 +54,6 @@
 #include <pcl/surface/concave_hull.h>
 
 typedef pcl::PointXYZRGB point_type ;
-//typedef pcl::PointCloud<point_type> cloud_type ;
 typedef pcl::PointCloud<pcl::PointXYZRGB> cloud_type ;
 
 #define threshod_binary 30
@@ -66,42 +65,40 @@ class MovingObjectFilter{
                           float fx,float fy,
                           float cx,float cy );
 
-        //void ExtractObject( cloud_type::ConstPtr cloud, cv::Mat& gray_img ) ;
-        //cloud_type::ConstPtr get_filter_cloud();
-        //void clear_object_cloud(  );
-
     private:
         ros::Publisher rgbPub_ ;
         ros::Publisher depthPub_ ;
         ros::Publisher cloudPub_ ;
-        cv::Ptr<cv::FeatureDetector> featureDetector_ ;
-        cv::Ptr<cv::DescriptorExtractor> descriptorExtractor_;
-        cv::Ptr<cv::DescriptorMatcher> descriptorMatcher_ ;
-        //std::vector<cv::KeyPoint> lastKeypoints ;
-        //cv::Mat lastDescriptors ;
+
+        //cv::Ptr<cv::FeatureDetector> featureDetector_ ;
+        //cv::Ptr<cv::DescriptorExtractor> descriptorExtractor_;
+        //cv::Ptr<cv::DescriptorMatcher> descriptorMatcher_ ;
+
         cv::Mat lastImage ;
         cv::Mat lastDepth ;
-        cv::Mat lastDepthfloat ;
         cv::Mat lastBlurImage ;
         cv::Mat lastFrame ;
         cv::Mat currentFrame ;
+        cv::Mat Homography ; //homography
 
+        //save the PointCloud which is calculated
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
+        //save the last PointCloud
         cloud_type lastCloud ;
+
         //pcl::visualization::CloudViewer cloud_viewer ;
         pcl::visualization::CloudViewer result_viewer ;
 
         double threshod ;
 
-        //parameters
-        //std::string frameId_;
-
-
+        //match between two image and calculate the homography
         void computeHomography(cv::Mat &grayImage) ;
-        std::vector<cv::DMatch> match_and_filter(const cv::Mat& descriptors);
-        //void image_diff(const cv::Mat &image, const cv::Mat &depth) ;
+
+        //calculate the difference between
         void image_diff(const cv::Mat &image, cloud_type::ConstPtr cloud);
 
+        //std::vector<cv::DMatch> match_and_filter(const cv::Mat& descriptors);
+        //void image_diff(const cv::Mat &image, const cv::Mat &depth) ;
         //int decimation = 1 ;
         //cv::Rect MovingObjectFilter::computeRoi(const cv::Mat & image, const std::vector<float> & roiRatios);
         //std::vector<cv::KeyPoint> MovingObjectFilter::generateKeypoints(const cv::Mat & image, int maxKeypoints, const cv::Rect & roi) const;
@@ -121,34 +118,20 @@ class MovingObjectFilter{
                         float fx, float fy,
                         int decimation);
 
-        void image_separate( cloud_type::ConstPtr cloud ) ;
+
         void pcl_segmentation( cloud_type::ConstPtr cloud , const cv::Mat &image , float cx, float cy, float fx, float fy ) ;
         bool image_extract_cluster( cloud_type::ConstPtr cloud,const cv::Mat &image , float cx, float cy, float fx, float fy ) ;
-        cv::Mat bgrFromCloud(const pcl::PointCloud<pcl::PointXYZRGBA> & cloud, bool bgrOrder);
+        cv::Mat bgrFromCloud(const pcl::PointCloud<pcl::PointXYZRGB> & cloud, bool bgrOrder);
         cv::Mat depthFromCloud(
-                const pcl::PointCloud<pcl::PointXYZRGBA> & cloud,
+                const pcl::PointCloud<pcl::PointXYZRGB> & cloud,
                 float & fx,
                 float & fy,
                 bool depth16U);
 
-        void transform_coordinate(cloud_type::ConstPtr cloud) ;
-        cv::Mat last_image;
-        cv::Mat binary_image ;
-        cv::Mat previous_frame ;
-        cv::Mat current_frame ;
-        cv::Mat Homography ; //homography
 
-        //pcl::PointCloud<pcl::PointXYZRGB>::Ptr last_cloud ;
-
-        //cloud_type object_cloud ; //save the moving object
-        //cloud_type filter_cloud ; //save the rest cloud(i.e don't include moving object)
-
-        int frame_count  ;//set the interval of frame_count
-        std::vector<Eigen::Vector3f> previous_coordinate ;
-        std::vector<Eigen::Vector3f> current_coordinate ;
-        double previous_z , current_z ;
-        double deta_x , deta_y ;
-        int count ;
+        //std::vector<Eigen::Vector3f> previous_coordinate ;
+        //std::vector<Eigen::Vector3f> current_coordinate ;
+        //int count ;
 
     
 };
