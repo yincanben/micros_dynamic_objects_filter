@@ -26,10 +26,10 @@ int main(int argc, char**argv){
     cv::Mat lastImage = cv::imread( argv[1], CV_LOAD_IMAGE_COLOR );
     cv::Mat currentImage = cv::imread( argv[2], CV_LOAD_IMAGE_COLOR );
     cv::Mat lastGray , currentGray ;
-	if(!lastImage.data || !currentImage.data){
-	    cout << "Could not read the image!" << endl ;
-	 	return -1 ;
-	}
+    if(!lastImage.data || !currentImage.data){
+        cout << "Could not read the image!" << endl ;
+        return -1 ;
+    }
     cv::Mat Homography ;
     cv::cvtColor(lastImage, lastGray, CV_BGR2GRAY) ;
     cv::cvtColor(currentImage, currentGray, CV_BGR2GRAY) ;
@@ -47,9 +47,7 @@ int main(int argc, char**argv){
     Homography = computeHomography(lastGray, currentGray );
     image_diff( lastGray, currentGray, lastCloud, currentCloud, Homography) ;
     pcl_segmentation(currentCloud) ;
-
-
-	return 0;
+    return 0;
 }
 cv::Mat  computeHomography(cv::Mat &lastImage, cv::Mat &currentImage ){
 

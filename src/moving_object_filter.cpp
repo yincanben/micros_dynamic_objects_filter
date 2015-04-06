@@ -545,7 +545,25 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv
         cloud_cluster->width = cloud_cluster->points.size () ;
         cloud_cluster->height = 1 ;
         cloud_cluster->is_dense = true ;
+
+        //Extract the objects
+        double z_min = 0.0 , z_max = 0.2 ;
+        pcl::PointCloud<pcl::PointXYZRGB>:: hull_points (new pcl::PointCloud<pcl::PointXYZRGB>()) ;
+        pcl::ConvexHull<pcl::PointXYZRGB> hull ;
+        pcl::PointIndices::Ptr cloud_indices (new pcl::PointIndices);
         if(image_extract_cluster(cloud_cluster,image, cx, cy, fx, fy)) {
+
+            hull.setInputCloud( cloud_cluster );
+            hull.reconstruct(hull_points) ;
+            if(hull.getDimension () == 2)
+            {
+              pcl::ExtractPolygonalPrismData<pcl::PointXYZRGB> prism;
+              prism.setInputCloud (cloud);
+              prism.setInputPlanarHull (hull_points);
+              prism.setHeightLimits (z_min, z_max);
+              prism.segment (cloud_indices);
+            }
+
             *dynamic_object += *cloud_cluster ;
             /*
             if(!cloud_viewer.wasStopped()){
@@ -561,13 +579,13 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv
         //std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
     }
     if(!result_viewer.wasStopped()){
-        result_viewer.showCloud(static_object);
+        result_viewer.showCloud(static_object) ;
     }
-    cv::Mat resultImage;
-    resultImage = this->bgrFromCloud( *static_object,false) ;
-    cv::namedWindow("resultImage");
-    cv::imshow("resultImage", resultImage);
-    cv::waitKey(1);
+    //cv::Mat resultImage;
+    //resultImage = this->bgrFromCloud( *static_object,false) ;
+    //cv::namedWindow("resultImage");
+    //cv::imshow("resultImage", resultImage);
+    //cv::waitKey(1);
 
     //ros::Duration next = ros::Time::now() - now ;
     //cout << "next = " << next.nsec << endl ;
@@ -622,9 +640,13 @@ bool MovingObjectFilter::image_extract_cluster( cloud_type::ConstPtr cloud, cons
     }
     cout << "count= " << count << endl ;
     cv::namedWindow("cluster") ;
-    cv::imshow("cluster", result) ;
+    cv::imshow("cluster", cluster) ;
     cv::waitKey(1) ;
+    
+    cv::namedWindow("")
+    
     if(count > 3000){
+        
         return true ;
     }else{
         return false ;
