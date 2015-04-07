@@ -115,7 +115,7 @@ int main(int argc, char**argv){
     hull.setAlpha(0.1);
     hull.reconstruct (*hull_points);
     std::stringstream ss1;
-    ss1 << "ConcaveHullCloud_" << j << ".pcd";
+    ss1 << "ConcaveHullCloud" << j << ".pcd";
     writer.write<pcl::PointXYZRGB> (ss1.str (), *hull_points, false);
     j++ ;
 
@@ -143,6 +143,10 @@ int main(int argc, char**argv){
         extract.setIndices(cloud_indices);
         extract.filter(*objects);
         pcl::visualization::CloudViewer viewerObjects("Objects");
+        std::stringstream ss2;
+        ss2 << "ObjectCloud" << j << ".pcd";
+        writer.write<pcl::PointXYZRGB> (ss2.str (), *objects, false);
+        j++ ;
         viewerObjects.showCloud(objects);
         while (!viewerObjects.wasStopped())
         {

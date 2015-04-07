@@ -51,7 +51,12 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/statistical_outlier_removal.h>
+
+#include <pcl/pcl_base.h>
 #include <pcl/surface/concave_hull.h>
+#include <pcl/surface/convex_hull.h>
+#include <pcl/segmentation/extract_polygonal_prism_data.h>
+
 
 typedef pcl::PointXYZRGB point_type ;
 typedef pcl::PointCloud<pcl::PointXYZRGB> cloud_type ;
@@ -83,6 +88,7 @@ class MovingObjectFilter{
 
         //save the PointCloud which is calculated
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
+        //pcl::PointCloud<pcl::PointXYZRGB>::Ptr restCloud ;
         //save the last PointCloud
         cloud_type lastCloud ;
 
@@ -121,6 +127,8 @@ class MovingObjectFilter{
 
         void pcl_segmentation( cloud_type::ConstPtr cloud , const cv::Mat &image , float cx, float cy, float fx, float fy ) ;
         bool image_extract_cluster( cloud_type::ConstPtr cloud,const cv::Mat &image , float cx, float cy, float fx, float fy ) ;
+        pcl::PointCloud<pcl::PointXYZRGB> objectFromOriginalCloud(cloud_type::ConstPtr clusterCloud, cloud_type::ConstPtr cloud);
+        void getDepth(cloud_type::ConstPtr cloud , const cv::Mat &image, float cx, float cy, float fx, float fy) ;
         cv::Mat bgrFromCloud(const pcl::PointCloud<pcl::PointXYZRGB> & cloud, bool bgrOrder);
         cv::Mat depthFromCloud(
                 const pcl::PointCloud<pcl::PointXYZRGB> & cloud,
