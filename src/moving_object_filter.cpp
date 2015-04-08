@@ -568,11 +568,18 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv
         cloud_cluster->clear();
         //std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
     }
-    cout << "The size of object =  " << object->size() << endl ;
+
+    dynamic_object->width = dynamic_object->points.size () ;
+    dynamic_object->height = 1 ;
+    dynamic_object->is_dense = true ;
+    dynamic_object->resize(dynamic_object->height * dynamic_object->width);
+
+
+    //cout << "The size of object =  " << object->size() << endl ;
     if(!result_viewer.wasStopped()){
         result_viewer.showCloud(dynamic_object) ;
     }
-    //getDepth( dynamic_object, image, cx, cy, fx, fy );
+    getDepth( dynamic_object, image, cx, cy, fx, fy );
 
     //cv::Mat resultImage;
     //resultImage = this->bgrFromCloud( *static_object,false) ;
@@ -687,10 +694,7 @@ pcl::PointCloud<pcl::PointXYZRGB> MovingObjectFilter::objectFromOriginalCloud(cl
     double z_min = -0.25, z_max = 0.25; // we want the points above the plane, no farther than 5 cm from the surface
     pcl::ExtractIndices<pcl::PointXYZRGB> extract;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr objects(new pcl::PointCloud<pcl::PointXYZRGB>);
-    objects->height = cloud->height;
-    objects->width  = cloud->width;
-    objects->is_dense = true;
-    objects->resize(objects->height * objects->width);
+
     if (hull.getDimension () == 2){
         pcl::ExtractPolygonalPrismData<pcl::PointXYZRGB> prism;
         prism.setInputCloud (cloud);
@@ -706,6 +710,11 @@ pcl::PointCloud<pcl::PointXYZRGB> MovingObjectFilter::objectFromOriginalCloud(cl
         extract.setInputCloud(cloud);
         extract.setIndices(cloud_indices);
         extract.filter(*objects);
+
+        objects->width  = objects->points.size() ;
+        objects->height = 1 ;
+        objects->is_dense = true ;
+        objects->resize(objects->height * objects->width);
 
 //        if(!result_viewer.wasStopped()){
 //            result_viewer.showCloud(objects) ;
@@ -729,8 +738,9 @@ void MovingObjectFilter::getDepth(cloud_type::ConstPtr cloud , const cv::Mat &im
     cv::Mat restImage = imageMono ;
     float x0 = 0.0 , y0 = 0.0 , z = 0.0 ;
     int x = 0 , y = 0 ;
+    //cv::Mat rest( 480,640, CV_8UC1, cv::Scalar(0) );
     for( int i = 0 ; i < cloud->points.size(); i++){
-        //z = cloud->points[i].z ;
+        z = cloud->points[i].z ;
         x0 = (cloud->points[i].x * fx)/z + cx ;
         y0 = (cloud->points[i].y * fy)/z + cy ;
         x = cvRound(x0) ;
@@ -738,9 +748,17 @@ void MovingObjectFilter::getDepth(cloud_type::ConstPtr cloud , const cv::Mat &im
         restImage.at<unsigned char>(y, x) = 255 ;
         //result.at<unsigned char>(y,x) = 255;
     }
+    /*
+    for(int row = 0 ; row < rest.rows; row++){
+        for(int col= 0; col < rest.cols; col++){
+            if(rest.at<unsigned char>(y, x) == 255 )
+                restImage.at<unsigned char>(row,col) = 255;
+        }
+    }*/
     cv::namedWindow("restImage") ;
     cv::imshow("restImage", restImage) ;
     cv::waitKey(1) ;
+
 }
 
 cv::Mat MovingObjectFilter::bgrFromCloud(const pcl::PointCloud<pcl::PointXYZRGB> & cloud, bool bgrOrder)
