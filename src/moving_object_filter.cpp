@@ -12,9 +12,9 @@
  {//cloud_viewer("Moving Object Viewer"),
 
     ros::NodeHandle nh ;
-    rgbPub_ = nh.advertise<sensor_msgs::Image>( "rgb" , 10 ) ;
-    depthPub_ = nh.advertise<sensor_msgs::Image>( "depth", 10 ) ;
-    cloudPub_ = nh.advertise<sensor_msgs::PointCloud2>("pointcloud2",10) ;
+    rgbPub_ = nh.advertise<sensor_msgs::Image>( "/filter/rgb" , 10 ) ;
+    depthPub_ = nh.advertise<sensor_msgs::Image>( "/filter/depth", 10 ) ;
+    cloudPub_ = nh.advertise<sensor_msgs::PointCloud2>("/filter/pointcloud2",10) ;
 
 }
 
@@ -46,16 +46,35 @@
 
      cloud = this->cloudFromDepthRGB( image, depth, cx, cy, fx, fy, 1.0 ) ;
      this->image_diff( imageMono, cloud ) ;
-    
-     this->pcl_segmentation(cloud, image, cx, cy, fx, fy) ;
+     pcl::PointCloud<pcl::PointXYZRGB>::Ptr restCloud;
+     this->pcl_segmentation(cloud, image, depth, cx, cy, fx, fy) ;
+
+     //Publish depth image
+     cv_bridge::CvImage cv_image ;
+     cv_image.image = restImage ;
+     cv_image.encoding = "TYPE_16UC1" ;
+     sensor_msgs::Image depth_image ;
+     cv_image.toImageMsg( depth_image ) ;
+     depthPub_.publish(depth_image) ;
+
+     cv_bridge::CvImage cv_rgbImage ;
+     cv_rgbImage.image = image ;
+     cv_rgbImage.encoding = "bgr8" ;
+     sensor_msgs::Image rgbImage ;
+     cv_rgbImage.toImageMsg( rgbImage ) ;
+     rgbPub_.publish( rgbImage ) ;
+
      //previous_coordinate.clear() ;
      //current_coordinate.clear() ;
+     /*
+     restCloud = this->cloudFromDepthRGB(image, restImage, cx, cy, fx, fy, 1.0) ;
      
      sensor_msgs::PointCloud2::Ptr cloudMsg(new sensor_msgs::PointCloud2) ;
-     pcl::toROSMsg(*cloud, *cloudMsg) ;
+     pcl::toROSMsg(*restCloud, *cloudMsg) ;
      cloudMsg->header.stamp = ros::Time::now() ;
      cloudMsg->header.frame_id = "camera_link" ;
      cloudPub_.publish(cloudMsg) ;
+     */
 
 
      /*
@@ -422,7 +441,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr MovingObjectFilter::cloudFromDepthRGB(
         }
         return cloud;
 }
-void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv::Mat &image , float cx, float cy, float fx, float fy ){
+void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv::Mat &image , const cv::Mat &depthImage, float cx, float cy, float fx, float fy ){
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -579,7 +598,7 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv
     if(!result_viewer.wasStopped()){
         result_viewer.showCloud(dynamic_object) ;
     }
-    getDepth( dynamic_object, image, cx, cy, fx, fy );
+    getDepth( dynamic_object, depthImage, cx, cy, fx, fy );
 
     //cv::Mat resultImage;
     //resultImage = this->bgrFromCloud( *static_object,false) ;
@@ -727,15 +746,17 @@ pcl::PointCloud<pcl::PointXYZRGB> MovingObjectFilter::objectFromOriginalCloud(cl
 
 }
 
-void MovingObjectFilter::getDepth(cloud_type::ConstPtr cloud , const cv::Mat &image, float cx, float cy, float fx, float fy){
+cv::Mat  MovingObjectFilter::getDepth(cloud_type::ConstPtr cloud , const cv::Mat &depthImage, float cx, float cy, float fx, float fy){
     //convert to grayscale
+    /*
     cv::Mat imageMono ;
     if(image.channels() > 1){
        cv::cvtColor(image, imageMono, cv::COLOR_BGR2GRAY) ;
     }else{
        imageMono = image ;
     }
-    cv::Mat restImage = imageMono ;
+    */
+    restImage = depthImage ;
     float x0 = 0.0 , y0 = 0.0 , z = 0.0 ;
     int x = 0 , y = 0 ;
     //cv::Mat rest( 480,640, CV_8UC1, cv::Scalar(0) );
@@ -745,7 +766,7 @@ void MovingObjectFilter::getDepth(cloud_type::ConstPtr cloud , const cv::Mat &im
         y0 = (cloud->points[i].y * fy)/z + cy ;
         x = cvRound(x0) ;
         y = cvRound(y0) ;
-        restImage.at<unsigned char>(y, x) = 255 ;
+        restImage.at<unsigned char>(y, x) = 0 ;
         //result.at<unsigned char>(y,x) = 255;
     }
     /*
@@ -758,6 +779,7 @@ void MovingObjectFilter::getDepth(cloud_type::ConstPtr cloud , const cv::Mat &im
     cv::namedWindow("restImage") ;
     cv::imshow("restImage", restImage) ;
     cv::waitKey(1) ;
+    return restImage ;
 
 }
 
