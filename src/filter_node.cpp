@@ -83,7 +83,7 @@ class DynamicObjectFilter: public MovingObjectFilter{
                 }// for if
             }// for else
             if(rate_ < 10){
-                rate_ ++ ;
+               rate_ ++ ;
             }else{
                 if( image->data.size() && depth->data.size() && cameraInfo->K[4] != 0 ){
                     // obtain the camera's parameters
@@ -99,8 +99,8 @@ class DynamicObjectFilter: public MovingObjectFilter{
                     cv_bridge::CvImageConstPtr ptrDepth = cv_bridge::toCvShare(depth);
                     // process the data
                     this->processData( ptrImage->image, ptrDepth->image, cx, cy, fx, fy);
-                }
-                rate_ = 0 ;
+               }
+               rate_ = 0 ;
             }
         }
 

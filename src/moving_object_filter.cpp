@@ -41,20 +41,23 @@
 
      //ROS_INFO( "Process data" ) ;
 
-     //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>) ;
+     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>) ;
 
 
      cloud = this->cloudFromDepthRGB( image, depth, cx, cy, fx, fy, 1.0 ) ;
      this->image_diff( imageMono, cloud ) ;
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr restCloud;
-     this->pcl_segmentation(cloud, image, depth, cx, cy, fx, fy) ;
+     cv::Mat restDepth ;
+     restDepth = this->pcl_segmentation(cloud, image, depth, cx, cy, fx, fy) ;
 
      //Publish depth image
      cv_bridge::CvImage cv_image ;
-     cv_image.image = restImage ;
-     cv_image.encoding = "TYPE_16UC1" ;
+     cv_image.image = restDepth ;
+     cv_image.encoding = "16UC1" ;
      sensor_msgs::Image depth_image ;
      cv_image.toImageMsg( depth_image ) ;
+     depth_image.header.stamp = ros::Time::now() ;
+     depth_image.header.frame_id = "camera_link" ;
      depthPub_.publish(depth_image) ;
 
      cv_bridge::CvImage cv_rgbImage ;
@@ -62,12 +65,14 @@
      cv_rgbImage.encoding = "bgr8" ;
      sensor_msgs::Image rgbImage ;
      cv_rgbImage.toImageMsg( rgbImage ) ;
+     rgbImage.header.stamp = ros::Time::now() ;
+     rgbImage.header.frame_id = "camera_link" ;
      rgbPub_.publish( rgbImage ) ;
 
      //previous_coordinate.clear() ;
      //current_coordinate.clear() ;
      /*
-     restCloud = this->cloudFromDepthRGB(image, restImage, cx, cy, fx, fy, 1.0) ;
+     restCloud = this->cloudFromDepthRGB(image, restDepth, cx, cy, fx, fy, 1.0) ;
      
      sensor_msgs::PointCloud2::Ptr cloudMsg(new sensor_msgs::PointCloud2) ;
      pcl::toROSMsg(*restCloud, *cloudMsg) ;
@@ -75,6 +80,7 @@
      cloudMsg->header.frame_id = "camera_link" ;
      cloudPub_.publish(cloudMsg) ;
      */
+
 
 
      /*
@@ -201,7 +207,7 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
         currentFrame = current_frame ;
         threshod = 40 ;
         //cv::namedWindow("lastFrame") ;
-        cv::namedWindow("currentFrame") ;
+        //cv::namedWindow("currentFrame") ;
         //cv::namedWindow("diffFrame") ;
 
 
@@ -270,8 +276,8 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
 
         //cv::imshow("lastFrame",last);
         //cv::waitKey(5);
-        cv::imshow("currentFrame",current) ;
-        cv::waitKey(5);
+        //cv::imshow("currentFrame",current) ;
+        //Scv::waitKey(5);
         //cv::imshow("diffFrame", diffFrame) ;
         //cv::waitKey(5);
 
@@ -441,7 +447,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr MovingObjectFilter::cloudFromDepthRGB(
         }
         return cloud;
 }
-void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv::Mat &image , const cv::Mat &depthImage, float cx, float cy, float fx, float fy ){
+cv::Mat MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv::Mat &image , const cv::Mat &depthImage, float cx, float cy, float fx, float fy ){
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -537,7 +543,7 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv
 
     std::vector<pcl::PointIndices> cluster_indices ;
     pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec ;
-    ec.setClusterTolerance (0.02) ; // 2cm
+    ec.setClusterTolerance (0.04) ; // 2cm
     ec.setMinClusterSize (1000) ;
     ec.setMaxClusterSize (25000) ;
     ec.setSearchMethod (tree) ;
@@ -547,7 +553,7 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv
     //ros::Duration time = now - last ;
     //cout << "Time : " << time.nsec << endl;
 
-    cout << "The size of cluster_indices : " << cluster_indices.size() << endl;
+    //cout << "The size of cluster_indices : " << cluster_indices.size() << endl;
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr dynamic_object (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -598,7 +604,11 @@ void MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv
     if(!result_viewer.wasStopped()){
         result_viewer.showCloud(dynamic_object) ;
     }
-    getDepth( dynamic_object, depthImage, cx, cy, fx, fy );
+    cv::Mat rest ;
+    rest = getDepth( dynamic_object, depthImage, cx, cy, fx, fy );
+    this->getImage( dynamic_object, image, cx, cy, fx, fy );
+    return rest ;
+
 
     //cv::Mat resultImage;
     //resultImage = this->bgrFromCloud( *static_object,false) ;
@@ -657,10 +667,11 @@ bool MovingObjectFilter::image_extract_cluster( cloud_type::ConstPtr cloud, cons
             }
         }
     }
-    cout << "count= " << count << endl ;
+    /*cout << "count= " << count << endl ;
     cv::namedWindow("result") ;
     cv::imshow("result", result) ;
     cv::waitKey(1) ;
+    */
     
     
     if(count > 3000){
@@ -710,7 +721,7 @@ pcl::PointCloud<pcl::PointXYZRGB> MovingObjectFilter::objectFromOriginalCloud(cl
     hull.setInputCloud (cluster);
     hull.setAlpha(0.1);
     hull.reconstruct (*hull_points);
-    double z_min = -0.25, z_max = 0.25; // we want the points above the plane, no farther than 5 cm from the surface
+    double z_min = -0.4, z_max = 0.4; // we want the points above the plane, no farther than 5 cm from the surface
     pcl::ExtractIndices<pcl::PointXYZRGB> extract;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr objects(new pcl::PointCloud<pcl::PointXYZRGB>);
 
@@ -756,7 +767,7 @@ cv::Mat  MovingObjectFilter::getDepth(cloud_type::ConstPtr cloud , const cv::Mat
        imageMono = image ;
     }
     */
-    restImage = depthImage ;
+    cv::Mat restImage = depthImage ;
     float x0 = 0.0 , y0 = 0.0 , z = 0.0 ;
     int x = 0 , y = 0 ;
     //cv::Mat rest( 480,640, CV_8UC1, cv::Scalar(0) );
@@ -766,7 +777,43 @@ cv::Mat  MovingObjectFilter::getDepth(cloud_type::ConstPtr cloud , const cv::Mat
         y0 = (cloud->points[i].y * fy)/z + cy ;
         x = cvRound(x0) ;
         y = cvRound(y0) ;
-        restImage.at<unsigned char>(y, x) = 0 ;
+        restImage.at<uint16_t>(y, x) = 0 ;
+        //result.at<unsigned char>(y,x) = 255;
+    }
+    /*
+    for(int row = 0 ; row < rest.rows; row++){
+        for(int col= 0; col < rest.cols; col++){
+            if(rest.at<unsigned char>(y, x) == 255 )
+                restImage.at<unsigned char>(row,col) = 255;
+        }
+    }*/
+    cv::namedWindow("restCloud") ;
+    cv::imshow("resCloud", restImage) ;
+    cv::waitKey(1) ;
+    return restImage ;
+
+}
+void  MovingObjectFilter::getImage(cloud_type::ConstPtr cloud , const cv::Mat &image, float cx, float cy, float fx, float fy){
+    //convert to grayscale
+
+    cv::Mat imageMono ;
+    if(image.channels() > 1){
+       cv::cvtColor(image, imageMono, cv::COLOR_BGR2GRAY) ;
+    }else{
+       imageMono = image ;
+    }
+
+    cv::Mat restImage = imageMono ;
+    float x0 = 0.0 , y0 = 0.0 , z = 0.0 ;
+    int x = 0 , y = 0 ;
+    //cv::Mat rest( 480,640, CV_8UC1, cv::Scalar(0) );
+    for( int i = 0 ; i < cloud->points.size(); i++){
+        z = cloud->points[i].z ;
+        x0 = (cloud->points[i].x * fx)/z + cx ;
+        y0 = (cloud->points[i].y * fy)/z + cy ;
+        x = cvRound(x0) ;
+        y = cvRound(y0) ;
+        restImage.at<unsigned char>(y, x) = 255 ;
         //result.at<unsigned char>(y,x) = 255;
     }
     /*
@@ -779,9 +826,9 @@ cv::Mat  MovingObjectFilter::getDepth(cloud_type::ConstPtr cloud , const cv::Mat
     cv::namedWindow("restImage") ;
     cv::imshow("restImage", restImage) ;
     cv::waitKey(1) ;
-    return restImage ;
 
 }
+
 
 cv::Mat MovingObjectFilter::bgrFromCloud(const pcl::PointCloud<pcl::PointXYZRGB> & cloud, bool bgrOrder)
 {

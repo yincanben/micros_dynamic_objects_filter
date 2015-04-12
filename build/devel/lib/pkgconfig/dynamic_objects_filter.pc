@@ -1,0 +1,8 @@
+prefix=/home/ycb13/catkin_ws/src/Dynamic_object_filter/build/devel
+
+Name: dynamic_objects_filter
+Description: Description of dynamic_objects_filter
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/ycb13/catkin_ws/src/Dynamic_object_filter/build/devel/lib 
+Requires: 

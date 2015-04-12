@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "dynamic_objects_filter")
+set(dynamic_objects_filter_MAINTAINER "ycb13 <ycb13@todo.todo>")
+set(dynamic_objects_filter_DEPRECATED "")
+set(dynamic_objects_filter_VERSION "0.0.0")
+set(dynamic_objects_filter_BUILD_DEPENDS "roscpp" "image_transport" "tf" "sensor_msgs" "std_msgs" "cv_bridge" "nav_msgs" "message_filters" "stereo_msgs" "geometry_msgs" "tf" "tf_conversions" "laser_geometry" "pcl_conversions" "pcl_ros" "dynamic_reconfigure" "message_filters" "image_geometry" "libpcl-all-dev")
+set(dynamic_objects_filter_RUN_DEPENDS "roscpp" "tf" "image_transport" "sensor_msgs" "std_msgs" "cv_bridge" "message_filters" "stereo_msgs" "geometry_msgs" "nav_msgs" "image_transport_plugins" "tf_conversions" "laser_geometry" "pcl_conversions" "pcl_ros" "dynamic_reconfigure" "rviz" "image_geometry")
+set(dynamic_objects_filter_BUILDTOOL_DEPENDS "catkin")
