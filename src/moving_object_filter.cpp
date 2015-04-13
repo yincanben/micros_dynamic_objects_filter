@@ -30,6 +30,7 @@
      }else{
         imageMono = image ;
      }
+
      this->computeHomography(imageMono);
 
      //OpticalFlow of ;
@@ -42,13 +43,25 @@
      //ROS_INFO( "Process data" ) ;
 
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>) ;
-
-
      cloud = this->cloudFromDepthRGB( image, depth, cx, cy, fx, fy, 1.0 ) ;
+
+
+//     timeval start , end ;
+//     gettimeofday( &start, NULL ) ;
      this->image_diff( imageMono, cloud ) ;
+//     gettimeofday( &end, NULL ) ;
+//     long long time ;
+//     time = 1000000*(end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)  ;
+//     cout << "Time : " << time << endl;
+
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr restCloud;
      cv::Mat restDepth ;
+     ros::Time last = ros::Time::now() ;
+
      restDepth = this->pcl_segmentation(cloud, image, depth, cx, cy, fx, fy) ;
+     ros::Time now = ros::Time::now() ;
+     ros::Duration time2 = now - last ;
+     cout << "time2 = " << time2 << endl ;
 
      //Publish depth image
      cv_bridge::CvImage cv_image ;
@@ -211,7 +224,7 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
         //cv::namedWindow("diffFrame") ;
 
 
-
+        ros::Time timebegin = ros::Time::now();
 
         for( int rows=0; rows < lastImage.rows; rows++ ){
             for(int cols=0; cols< lastImage.cols; cols++){
@@ -273,6 +286,11 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
                 }
             }
         }
+        ros::Time timeend = ros::Time::now();
+        ros::Duration time1 = timeend - timebegin;
+        double timecost = time1.toSec();
+        cout << "Time1 : " << timecost << endl;
+
 
         //cv::imshow("lastFrame",last);
         //cv::waitKey(5);
@@ -419,6 +437,9 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr MovingObjectFilter::cloudFromDepthRGB(
         cloud->width  = imageDepth.cols/decimation;
         cloud->is_dense = false;
         cloud->resize(cloud->height * cloud->width);
+        timeval start , end ;
+        gettimeofday( &start, NULL ) ;
+
 
         for(int h = 0; h < imageDepth.rows && h/decimation < (int)cloud->height; h+=decimation)
         {
@@ -445,6 +466,10 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr MovingObjectFilter::cloudFromDepthRGB(
                         pt.z = ptXYZ.z;
                 }
         }
+        gettimeofday( &end, NULL ) ;
+        long long time ;
+        time = 1000000*(end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)  ;
+        cout << "Time : " << time << endl;
         return cloud;
 }
 cv::Mat MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv::Mat &image , const cv::Mat &depthImage, float cx, float cy, float fx, float fy ){
@@ -543,7 +568,7 @@ cv::Mat MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const
 
     std::vector<pcl::PointIndices> cluster_indices ;
     pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec ;
-    ec.setClusterTolerance (0.04) ; // 2cm
+    ec.setClusterTolerance (0.04) ; // 4cm
     ec.setMinClusterSize (1000) ;
     ec.setMaxClusterSize (25000) ;
     ec.setSearchMethod (tree) ;

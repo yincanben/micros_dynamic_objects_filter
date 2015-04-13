@@ -446,6 +446,7 @@ void pcl_segmentation( cloud_type::ConstPtr cloud ){
 
     cout << "The size of cluster_indices : " << cluster_indices.size() << endl;
     int j = 0 ;
+	int num = 0 ;
     for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it){
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
         for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
@@ -455,6 +456,11 @@ void pcl_segmentation( cloud_type::ConstPtr cloud ){
         cloud_cluster->is_dense = true;
 
         std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
+		std::stringstream ss1;
+        ss1 << "cluster_cloud_" << num << ".pcd";
+        writer.write<pcl::PointXYZRGB> (ss1.str (), *cloud_cluster, false);
+        num++;
+
         if(image_extract_cluster(cloud_cluster)) {
             std::stringstream ss;
             ss << "ResultCloud_" << j << ".pcd";
