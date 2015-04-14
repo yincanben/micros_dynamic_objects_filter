@@ -30,9 +30,16 @@
      }else{
         imageMono = image ;
      }
+     timeval start , end ;
+     long long time ;
+
+     gettimeofday( &start, NULL ) ;
 
      this->computeHomography(imageMono);
 
+     gettimeofday( &end, NULL ) ;
+     time = 1000000*(end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)  ;
+     cout << "findhomography Time =  " << time << endl;
      //OpticalFlow of ;
 
      //of.process( imageMono );
@@ -43,25 +50,35 @@
      //ROS_INFO( "Process data" ) ;
 
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>) ;
+     gettimeofday( &start, NULL ) ;
      cloud = this->cloudFromDepthRGB( image, depth, cx, cy, fx, fy, 1.0 ) ;
+     gettimeofday( &end, NULL ) ;
+     time = 1000000*(end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)  ;
+     cout << "calculateCloud Time =  " << time << endl;
+//     if(!result_viewer.wasStopped()){
+//        result_viewer.showCloud(cloud) ;
+//     }
 
 
-//     timeval start , end ;
-//     gettimeofday( &start, NULL ) ;
+
+     gettimeofday( &start, NULL ) ;
+
      this->image_diff( imageMono, cloud ) ;
-//     gettimeofday( &end, NULL ) ;
-//     long long time ;
-//     time = 1000000*(end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)  ;
-//     cout << "Time : " << time << endl;
+
+     gettimeofday( &end, NULL ) ;
+     time = 1000000*(end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)  ;
+     cout << "Diffetrence Time =  " << time << endl;
 
      pcl::PointCloud<pcl::PointXYZRGB>::Ptr restCloud;
      cv::Mat restDepth ;
-     ros::Time last = ros::Time::now() ;
+
+     gettimeofday( &start, NULL ) ;
 
      restDepth = this->pcl_segmentation(cloud, image, depth, cx, cy, fx, fy) ;
-     ros::Time now = ros::Time::now() ;
-     ros::Duration time2 = now - last ;
-     cout << "time2 = " << time2 << endl ;
+
+     gettimeofday( &end, NULL ) ;
+     time = 1000000*(end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)  ;
+     cout << "CloudCluster Time =  " << time << endl;
 
      //Publish depth image
      cv_bridge::CvImage cv_image ;
@@ -211,12 +228,12 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
         //cv::absdiff( BlurImage2, lastImage, diff_image ) ;
 
         //Calculate the difference of image
-        cv::Mat last_frame( 480,640, CV_8UC1, cv::Scalar(0) );
+        //cv::Mat last_frame( 480,640, CV_8UC1, cv::Scalar(0) );
         cv::Mat current_frame( 480,640, CV_8UC1, cv::Scalar(0) );
-        cv::Mat diffFrame( 480,640, CV_8UC1, cv::Scalar(0) );
-        cv::Mat last = lastBlurImage ;
-        cv::Mat current = BlurImage2 ;
-        lastFrame = last_frame ;
+        //cv::Mat diffFrame( 480,640, CV_8UC1, cv::Scalar(0) );
+        //cv::Mat last = lastBlurImage ;
+        //cv::Mat current = BlurImage2 ;
+        //lastFrame = last_frame ;
         currentFrame = current_frame ;
         threshod = 40 ;
         //cv::namedWindow("lastFrame") ;
@@ -224,7 +241,7 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
         //cv::namedWindow("diffFrame") ;
 
 
-        ros::Time timebegin = ros::Time::now();
+        //ros::Time timebegin = ros::Time::now();
 
         for( int rows=0; rows < lastImage.rows; rows++ ){
             for(int cols=0; cols< lastImage.cols; cols++){
@@ -242,35 +259,49 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
                 //cout << "warpPt.x= " << warpPt.x <<" ; warpPt.y= " << warpPt.y << endl ;
                 //float lastDepthValue = (float)lastDepth.at<uint16_t>( rows, cols )*0.001f ;
                 //cout << "The rows of depth:" << rows << " ,The cols of depth: " << cols << endl ;
+                const uchar* lastBlurImagePtr ;
+                const uchar* currentBlurImagePtr ;
 
                 if( warpPt.x>0 && warpPt.x<640  &&  warpPt.y>0 && warpPt.y< 480){
+                    lastBlurImagePtr = lastBlurImage.ptr<uchar>( rows );
+                    currentBlurImagePtr = BlurImage2.ptr<uchar>( warpPt.y );
+                    const uchar& lastCol  = lastBlurImagePtr[cols] ;
+                    const uchar& currentCol  = currentBlurImagePtr[warpPt.x] ;
+                    double imageDiff = abs(lastCol - currentCol) ;
 
-                    double imageDiff = abs( lastBlurImage.at<unsigned char>(rows, cols) - BlurImage2.at<unsigned char>(warpPt.y ,warpPt.x));
+                    //double imageDiff = abs( lastBlurImage.at<unsigned char>(rows, cols) - BlurImage2.at<unsigned char>(warpPt.y ,warpPt.x));
 
                     double lastDepthValue = 0.0 ;
                     double depthValue = 0.0 ;
-                    Eigen::Vector3f v1 ;
-                    Eigen::Vector3f v2 ;
+                    //Eigen::Vector3f v1 ;
+                    //Eigen::Vector3f v2 ;
 
                     //cout << "After  abs" << endl;
                     //ROS_INFO("depth rows:%d ; cols:%d", depth.rows, depth.cols
+                    //uchar* lastFramePtr = lastFrame.ptr<uchar>(rows) ;
+                    uchar* currentFramePtr = currentFrame.ptr<uchar>(warpPt.y) ;
+                    //uchar* lastFrameCol = &lastFramePtr[cols] ;
+                    uchar* currentFrameCol = &currentFramePtr[warpPt.x] ;
 
+                    //const uint16_t* lastDepthPtr = lastCloud.ptr<uint16_t>(cols);
+                    //const uint16_t* currentDepthPtr = cloud
                     if( imageDiff > threshod ){
-                        diffFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
+                        //diffFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
 
                         lastDepthValue = isnan( lastCloud.at( cols,rows).z) ? 20 : lastCloud.at(cols,rows).z ;
                         depthValue = isnan( cloud->at(warpPt.x, warpPt.y).z) ? 20 : cloud->at(warpPt.x, warpPt.y).z ;
 
                         if( lastDepthValue - depthValue > 0.2 && lastDepthValue<20 ){
-                            currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
-                            current.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
+                            *currentFrameCol = 255 ;
+                            //currentFrame.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
+                            //current.at<unsigned char>(warpPt.y ,warpPt.x) = 255 ;
                             //v1 << cloud->at(warpPt.x, warpPt.y).x , cloud->at(warpPt.x, warpPt.y).y ,cloud->at(warpPt.x, warpPt.y).z ;
                             //current_coordinate.push_back(v1) ;
 
                         }else if( depthValue -lastDepthValue > 0.2 && depthValue <20 ){
-
-                            lastFrame.at<unsigned char>(rows, cols) = 255 ;
-                            last.at<unsigned char>(rows, cols) = 255 ;
+                            //*lastFrameCol = 255 ;
+                            //lastFrame.at<unsigned char>(rows, cols) = 255 ;
+                            //last.at<unsigned char>(rows, cols) = 255 ;
                             //v2 << lastCloud.at( cols,rows).x , lastCloud.at( cols,rows).y , lastCloud.at( cols,rows).z ;
                             //previous_coordinate.push_back(v2) ;
 
@@ -286,16 +317,16 @@ void MovingObjectFilter::image_diff(const cv::Mat &currentImage, cloud_type::Con
                 }
             }
         }
-        ros::Time timeend = ros::Time::now();
-        ros::Duration time1 = timeend - timebegin;
-        double timecost = time1.toSec();
-        cout << "Time1 : " << timecost << endl;
+//        ros::Time timeend = ros::Time::now();
+//        ros::Duration time1 = timeend - timebegin;
+//        double timecost = time1.toSec();
+//        cout << "difference  Time1 : " << 1000000*timecost << endl;
 
 
-        //cv::imshow("lastFrame",last);
+        //cv::imshow("lastFrame",lastFrame);
         //cv::waitKey(5);
-        //cv::imshow("currentFrame",current) ;
-        //Scv::waitKey(5);
+        //cv::imshow("currentFrame",currentFrame) ;
+        //cv::waitKey(5);
         //cv::imshow("diffFrame", diffFrame) ;
         //cv::waitKey(5);
 
@@ -347,8 +378,11 @@ pcl::PointXYZ MovingObjectFilter::projectDepthTo3D(
     int v_start = std::max(v-1, 0);
     int u_end = std::min(u+1, depthImage.cols-1);
     int v_end = std::min(v+1, depthImage.rows-1);
+     const uint16_t *depthPtr = depthImage.ptr<uint16_t>( v ) ;
+     const uint16_t &dv = depthPtr[u] ;
 
-    float depth = isInMM?(float)depthImage.at<uint16_t>(v,u)*0.001f:depthImage.at<float>(v,u);
+    //float depth = isInMM?(float)depthImage.at<uint16_t>(v,u)*0.001f:depthImage.at<float>(v,u);
+    float depth = isInMM?(float) dv*0.001f : dv ;
     if(depth!=0.0f && uIsFinite(depth))
     {
         if(smoothing)
@@ -361,7 +395,8 @@ pcl::PointXYZ MovingObjectFilter::projectDepthTo3D(
                 {
                     if(!(uu == u && vv == v))
                     {
-                        float d = isInMM?(float)depthImage.at<uint16_t>(vv,uu)*0.001f:depthImage.at<float>(vv,uu);
+                        //float d = isInMM?(float)depthImage.at<uint16_t>(vv,uu)*0.001f:depthImage.at<float>(vv,uu);
+                        float d = isInMM ? (float)dv*0.001f : dv ;
                         // ignore if not valid or depth difference is too high
                         if(d != 0.0f && uIsFinite(d) && fabs(d - depth) < maxZError)
                         {
@@ -392,8 +427,8 @@ pcl::PointXYZ MovingObjectFilter::projectDepthTo3D(
         cy = cy > 0.0f ? cy : float(depthImage.rows/2) - 0.5f; //cameraInfo.K.at(5)
 
         // Fill in XYZ
-        pt.x = (x - cx) * depth / fx;
-        pt.y = (y - cy) * depth / fy;
+        pt.x = (x - cx) * depth / fx ;
+        pt.y = (y - cy) * depth / fy ;
         pt.z = depth;
     }
     else
@@ -410,67 +445,63 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr MovingObjectFilter::cloudFromDepthRGB(
                 float fx, float fy,
                 int decimation)
 {
-        //UASSERT(imageRgb.rows == imageDepth.rows && imageRgb.cols == imageDepth.cols);
-        //UASSERT(!imageDepth.empty() && (imageDepth.type() == CV_16UC1 || imageDepth.type() == CV_32FC1));
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-        if(decimation < 1)
-        {
-                return cloud;
-        }
-
-        bool mono;
-        if(imageRgb.channels() == 3) // BGR
-        {
-                mono = false;
-        }
-        else if(imageRgb.channels() == 1) // Mono
-        {
-                mono = true;
-        }
-        else
-        {
-                return cloud;
-        }
-
-        //cloud.header = cameraInfo.header;
-        cloud->height = imageDepth.rows/decimation;
-        cloud->width  = imageDepth.cols/decimation;
-        cloud->is_dense = false;
-        cloud->resize(cloud->height * cloud->width);
-        timeval start , end ;
-        gettimeofday( &start, NULL ) ;
-
-
-        for(int h = 0; h < imageDepth.rows && h/decimation < (int)cloud->height; h+=decimation)
-        {
-                for(int w = 0; w < imageDepth.cols && w/decimation < (int)cloud->width; w+=decimation)
-                {
-                        pcl::PointXYZRGB & pt = cloud->at((h/decimation)*cloud->width + (w/decimation));
-                        if(!mono)
-                        {
-                                pt.b = imageRgb.at<cv::Vec3b>(h,w)[0];
-                                pt.g = imageRgb.at<cv::Vec3b>(h,w)[1];
-                                pt.r = imageRgb.at<cv::Vec3b>(h,w)[2];
-                        }
-                        else
-                        {
-                                unsigned char v = imageRgb.at<unsigned char>(h,w);
-                                pt.b = v;
-                                pt.g = v;
-                                pt.r = v;
-                        }
-
-                        pcl::PointXYZ ptXYZ = this->projectDepthTo3D(imageDepth, w, h, cx, cy, fx, fy, false);
-                        pt.x = ptXYZ.x;
-                        pt.y = ptXYZ.y;
-                        pt.z = ptXYZ.z;
-                }
-        }
-        gettimeofday( &end, NULL ) ;
-        long long time ;
-        time = 1000000*(end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)  ;
-        cout << "Time : " << time << endl;
+    //UASSERT(imageRgb.rows == imageDepth.rows && imageRgb.cols == imageDepth.cols);
+    //UASSERT(!imageDepth.empty() && (imageDepth.type() == CV_16UC1 || imageDepth.type() == CV_32FC1));
+    assert(imageDepth.type() == CV_16UC1);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    if(decimation < 1){
         return cloud;
+    }
+
+    bool mono;
+    if(imageRgb.channels() == 3){// BGR
+        mono = false;
+    }else if(imageRgb.channels() == 1){ // Mono
+        mono = true;
+    }else{
+        return cloud;
+    }
+
+    //cloud.header = cameraInfo.header;
+    cloud->height = imageDepth.rows/decimation;
+    cloud->width  = imageDepth.cols/decimation;
+    cloud->is_dense = false;
+    cloud->resize(cloud->height * cloud->width);
+    pcl::PointCloud<pcl::PointXYZRGB>::iterator pc_iter = cloud->begin() ;
+//    timeval start , end ;
+//    gettimeofday( &start, NULL ) ;
+
+    for(int h = 0; h < imageDepth.rows && h/decimation < (int)cloud->height; h+=decimation){
+        const cv::Vec3b *rgbPtr = imageRgb.ptr<cv::Vec3b>( h ) ;
+        for(int w = 0; w < imageDepth.cols && w/decimation < (int)cloud->width; w+=decimation){
+            pcl::PointXYZRGB &pt = *pc_iter++ ;
+            const cv::Vec3b& col = rgbPtr[w];
+            //pcl::PointXYZRGB & pt = cloud->at((h/decimation)*cloud->width + (w/decimation));
+            if(!mono){
+                pt.b = col[0] ;//imageRgb.at<cv::Vec3b>(h,w)[0];
+                pt.g = col[1] ;//imageRgb.at<cv::Vec3b>(h,w)[1];
+                pt.r = col[2] ;//imageRgb.at<cv::Vec3b>(h,w)[2];
+            }else{
+                //unsigned char v = imageRgb.at<unsigned char>(h,w);
+                pt.b = col[0] ;
+                pt.g = col[1] ;
+                pt.r = col[2] ;
+            }
+
+            pcl::PointXYZ ptXYZ = this->projectDepthTo3D(imageDepth, w, h, cx, cy, fx, fy, false);
+            pt.x = ptXYZ.x;
+            pt.y = ptXYZ.y;
+            pt.z = ptXYZ.z;
+        }
+    }
+//    gettimeofday( &end, NULL ) ;
+//    long long time ;
+//    time = 1000000*(end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)  ;
+//    cout << "The time of calculating PointCloud = " << time << endl;
+    //if(!result_viewer.wasStopped()){
+    //result_viewer.showCloud(cloud) ;
+    //}
+    return cloud;
 }
 cv::Mat MovingObjectFilter::pcl_segmentation( cloud_type::ConstPtr cloud , const cv::Mat &image , const cv::Mat &depthImage, float cx, float cy, float fx, float fy ){
 
