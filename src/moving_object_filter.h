@@ -36,7 +36,9 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include <Eigen/Core> 
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Eigen>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>

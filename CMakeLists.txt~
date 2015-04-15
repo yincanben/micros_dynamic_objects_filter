@@ -13,7 +13,10 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   message_filters
   image_geometry
+  Eigen
 )
+
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
 find_package(Eigen REQUIRED)
 find_package(OpenCV REQUIRED)

@@ -6,32 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/home/ycb13/catkin_ws/src/Dynamic_object_filter/src/filter_node.cpp
-iostream
--
-ros/ros.h
--
-message_filters/subscriber.h
--
-message_filters/time_synchronizer.h
--
-message_filters/sync_policies/approximate_time.h
--
-image_transport/image_transport.h
--
-image_transport/subscriber_filter.h
--
-image_geometry/stereo_camera_model.h
--
-sensor_msgs/Image.h
--
-sensor_msgs/image_encodings.h
--
-cv_bridge/cv_bridge.h
--
-moving_object_filter.h
-/home/ycb13/catkin_ws/src/Dynamic_object_filter/src/moving_object_filter.h
-
 /home/ycb13/catkin_ws/src/Dynamic_object_filter/src/moving_object_filter.cpp
 moving_object_filter.h
 /home/ycb13/catkin_ws/src/Dynamic_object_filter/src/moving_object_filter.h
@@ -68,6 +42,8 @@ stdio.h
 vector
 -
 string
+-
+ctime
 -
 opencv2/opencv.hpp
 -
@@ -124,10 +100,6 @@ pcl/surface/convex_hull.h
 pcl/segmentation/extract_polygonal_prism_data.h
 -
 
-/home/ycb13/catkin_ws/src/Dynamic_object_filter/src/optical_flow.cpp
-optical_flow.h
-/home/ycb13/catkin_ws/src/Dynamic_object_filter/src/optical_flow.h
-
 /home/ycb13/catkin_ws/src/Dynamic_object_filter/src/optical_flow.h
 image_transport/image_transport.h
 -
@@ -175,22 +147,6 @@ opencv2/core/core.hpp
 -
 stdexcept
 -
-
-/opt/ros/hydro/include/image_geometry/pinhole_camera_model.h
-sensor_msgs/CameraInfo.h
--
-opencv2/core/core.hpp
--
-opencv2/imgproc/imgproc.hpp
--
-opencv2/calib3d/calib3d.hpp
--
-stdexcept
--
-
-/opt/ros/hydro/include/image_geometry/stereo_camera_model.h
-image_geometry/pinhole_camera_model.h
-/opt/ros/hydro/include/image_geometry/image_geometry/pinhole_camera_model.h
 
 /opt/ros/hydro/include/image_transport/camera_publisher.h
 ros/ros.h
