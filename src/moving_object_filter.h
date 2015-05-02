@@ -90,6 +90,8 @@ class MovingObjectFilter{
         cv::Mat Homography ; //homography
         //cv::Mat restImage ;
 
+        //static int num = 0  ;
+
         //save the PointCloud which is calculated
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
         //pcl::PointCloud<pcl::PointXYZRGB>::Ptr restCloud ;
@@ -98,6 +100,7 @@ class MovingObjectFilter{
 
         //pcl::visualization::CloudViewer cloud_viewer ;
         pcl::visualization::CloudViewer result_viewer ;
+        //pcl::visualization::CloudViewer viewer ;
 
         double threshod ;
 
@@ -133,7 +136,7 @@ class MovingObjectFilter{
         bool image_extract_cluster( cloud_type::ConstPtr cloud,const cv::Mat &image , float cx, float cy, float fx, float fy ) ;
         pcl::PointCloud<pcl::PointXYZRGB> objectFromOriginalCloud(cloud_type::ConstPtr clusterCloud, cloud_type::ConstPtr cloud);
         cv::Mat getDepth(cloud_type::ConstPtr cloud , const cv::Mat &depthImage, float cx, float cy, float fx, float fy) ;
-        void  getImage(cloud_type::ConstPtr cloud , const cv::Mat &image, float cx, float cy, float fx, float fy) ;
+        void getImage(cloud_type::ConstPtr cloud , const cv::Mat &image, float cx, float cy, float fx, float fy) ;
         cv::Mat bgrFromCloud(const pcl::PointCloud<pcl::PointXYZRGB> & cloud, bool bgrOrder);
         cv::Mat depthFromCloud(
                 const pcl::PointCloud<pcl::PointXYZRGB> & cloud,

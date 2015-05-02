@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.3.2, 2015-04-11T15:50:29. -->
+<!-- Written by QtCreator 3.3.2, 2015-04-16T08:06:13. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -213,7 +213,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">octomap_saver</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">octomap_saver (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.octomap_saver</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -264,7 +264,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">map_assembler</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">map_assembler (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.map_assembler</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -315,7 +315,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">map_optimizer</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">map_optimizer (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.map_optimizer</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -366,7 +366,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">odom_msg_to_tf</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">odom_msg_to_tf (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.odom_msg_to_tf</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -417,7 +417,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">rgbd_odometry</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">rgbd_odometry (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.rgbd_odometry</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -468,7 +468,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">rtabmap</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">rtabmap (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.rtabmap</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -519,7 +519,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">rtabmapviz</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">rtabmapviz (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.rtabmapviz</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -570,7 +570,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">stereo_odometry</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">stereo_odometry (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.stereo_odometry</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -621,7 +621,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">laser_footprint_filter</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">laser_footprint_filter (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.laser_footprint_filter</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -672,7 +672,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">turtlebot_description_test_urdf</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">turtlebot_description_test_urdf (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.turtlebot_description_test_urdf</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -723,7 +723,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">octomap_server_multilayer</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">octomap_server_multilayer (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.octomap_server_multilayer</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -774,7 +774,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">octomap_server_node</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">octomap_server_node (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.octomap_server_node</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -825,7 +825,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">octomap_server_static</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">octomap_server_static (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.octomap_server_static</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -876,7 +876,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">octomap_tracking_server_node</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">octomap_tracking_server_node (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.octomap_tracking_server_node</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -927,7 +927,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">camera</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">camera (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.camera</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -978,7 +978,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">data_player</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">data_player (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.data_player</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -1029,7 +1029,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">data_recorder</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">data_recorder (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.data_recorder</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
@@ -1080,7 +1080,7 @@
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">grid_map_assembler</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">grid_map_assembler (disabled)</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.grid_map_assembler</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
