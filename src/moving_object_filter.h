@@ -133,7 +133,7 @@ class MovingObjectFilter{
 
 
         cv::Mat pcl_segmentation( cloud_type::ConstPtr cloud , const cv::Mat &image , const cv::Mat &depthImage, float cx, float cy, float fx, float fy ) ;
-        bool image_extract_cluster( cloud_type::ConstPtr cloud,const cv::Mat &image , float cx, float cy, float fx, float fy ) ;
+        bool image_extract_cluster( cloud_type::ConstPtr cluster_cloud, cloud_type::ConstPtr cloud, const cv::Mat &image , float cx, float cy, float fx, float fy , int num , int j ) ;
         pcl::PointCloud<pcl::PointXYZRGB> objectFromOriginalCloud(cloud_type::ConstPtr clusterCloud, cloud_type::ConstPtr cloud);
         cv::Mat getDepth(cloud_type::ConstPtr cloud , const cv::Mat &depthImage, float cx, float cy, float fx, float fy) ;
         void getImage(cloud_type::ConstPtr cloud , const cv::Mat &image, float cx, float cy, float fx, float fy) ;
