@@ -1,1 +1,0 @@
-/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/moving_object_detection-build/CMakeFiles/moving_object_filter.dir

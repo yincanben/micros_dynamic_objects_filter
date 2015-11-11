@@ -59,6 +59,8 @@
 #include <pcl/surface/concave_hull.h>
 #include <pcl/surface/convex_hull.h>
 #include <pcl/segmentation/extract_polygonal_prism_data.h>
+#include <cstring>
+#include <string>
 
 
 typedef pcl::PointXYZRGB point_type ;
@@ -72,6 +74,9 @@ class MovingObjectFilter{
         void processData( const cv::Mat & image, const cv::Mat &depth,
                           float fx,float fy,
                           float cx,float cy );
+        std::string rgb_frame_id ;
+        std::string depth_frame_id ;
+        void setFrameId(std::string rgb_frame, std::string depth_frame) ;
 
     private:
         ros::Publisher rgbPub_ ;
@@ -88,7 +93,7 @@ class MovingObjectFilter{
         cv::Mat lastFrame ;
         cv::Mat currentFrame ;
         cv::Mat Homography ; //homography
-        //cv::Mat restImage ;
+        cv::Mat dynamicImage ;
 
         //static int num = 0  ;
 
@@ -98,11 +103,16 @@ class MovingObjectFilter{
         //save the last PointCloud
         cloud_type lastCloud ;
 
-        //pcl::visualization::CloudViewer cloud_viewer ;
-        pcl::visualization::CloudViewer result_viewer ;
-        //pcl::visualization::CloudViewer viewer ;
+        //pcl::visualization::CloudViewer result_viewer ;
+
+
+        /*pcl::visualization::CloudViewer cloud_viewer ;
+         * pcl::visualization::CloudViewer viewer ;
+         *
+         */
 
         double threshod ;
+        int num1 ;
 
         //match between two image and calculate the homography
         void computeHomography(cv::Mat &grayImage) ;
@@ -143,6 +153,8 @@ class MovingObjectFilter{
                 float & fx,
                 float & fy,
                 bool depth16U);
+
+
 
 
         //std::vector<Eigen::Vector3f> previous_coordinate ;

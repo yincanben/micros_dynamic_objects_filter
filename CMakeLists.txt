@@ -13,14 +13,15 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   message_filters
   image_geometry
-  Eigen
+  #Eigen
 )
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
-find_package(Eigen REQUIRED)
+#find_package(Eigen REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(PCL 1.7 REQUIRED)
+find_package(cmake_modules REQUIRED)
 
 
 link_directories(${PCL_LIBRARY_DIRS})

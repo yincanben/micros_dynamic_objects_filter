@@ -1,1 +1,0 @@
-/home/ycb13/catkin_ws/src/Dynamic_object_filter/test/canny/build/CMakeFiles/canny.dir
