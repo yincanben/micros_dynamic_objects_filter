@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(dynamic_objects_filter)
+project(micros_dynamic_object_filter)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -13,12 +13,12 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   message_filters
   image_geometry
-  Eigen
+  #Eigen
 )
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
-find_package(Eigen REQUIRED)
+#find_package(Eigen REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(PCL 1.7 REQUIRED)
 find_package(cmake_modules REQUIRED)

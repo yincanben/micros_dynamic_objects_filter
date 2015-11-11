@@ -1,8 +1,0 @@
-prefix=/usr/local
-
-Name: dynamic_objects_filter
-Description: Description of dynamic_objects_filter
-Version: 0.0.0
-Cflags: 
-Libs: -L/usr/local/lib 
-Requires: 
